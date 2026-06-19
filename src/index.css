@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-serif: 'Fraunces', serif;
+
+  --color-primary: #5c2d0e;
+  --color-primary-light: #7c4b2a;
+}
+
+@layer base {
+  :root {
+    --primary: #5c2d0e;
+    --primary-light: #7c4b2a;
+  }
+  
+  body {
+    background-color: #fdfbf7;
+    color: #3d1f0f;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+@layer utilities {
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Gradients */
+.bg-grad {
+  background: linear-gradient(135deg, #4a2010, #7c4b2a);
+}
+
+.bg-grad-hero {
+  background: linear-gradient(180deg, #4a2210 0%, #7c3f1e 22%, #b87240 52%, #dfc08a 72%, #f5ecd7 88%, #fdfbf7 100%);
+}
