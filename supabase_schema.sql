@@ -15,7 +15,8 @@ CREATE TABLE menu_items (
   description TEXT,
   price DECIMAL(10, 2) NOT NULL,
   available BOOLEAN DEFAULT true,
-  is_extra BOOLEAN DEFAULT false
+  is_extra BOOLEAN DEFAULT false,
+  image_url TEXT
 );
 
 -- 3. Orders
