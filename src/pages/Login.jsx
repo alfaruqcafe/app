@@ -98,10 +98,7 @@ export function Login() {
             {loading ? "Wird angemeldet..." : "Anmelden"}
           </button>
           
-          <div className="mt-5 pt-5 border-t border-[#e5d9c8] flex flex-col gap-1.5 text-center text-xs text-gray-400">
-            <p className="m-0">Demo Staff: staff / staff</p>
-            <p className="m-0">Demo Admin: admin / admin</p>
-          </div>
+
         </form>
       </div>
     </div>
