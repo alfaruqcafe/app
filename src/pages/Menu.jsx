@@ -14,7 +14,7 @@ export function Menu() {
   const { categories } = useMenu();
   const { addItem, count, lastOrderId } = useCart();
   
-  const canOrder = user?.role === 'staff' || user?.role === 'admin';
+  const canOrder = true;
   
   const [activeCategory, setActiveCategory] = useState(null);
   const [cartOpen, setCartOpen] = useState(false);

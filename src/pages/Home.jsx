@@ -1,12 +1,47 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Coffee, Calendar, Building, ChevronRight } from 'lucide-react';
-import { MOCK_EVENTS, EVENT_TYPE_STYLES } from '../lib/mockData';
+import { EVENT_TYPE_STYLES } from '../lib/mockData';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { supabase } from '../lib/supabase';
 
 export function Home() {
   const navigate = useNavigate();
-  const upcomingEvents = MOCK_EVENTS.slice(0, 3);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+
+  useEffect(() => {
+    async function fetchEvents() {
+      if (!supabase) return;
+      try {
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .order('start_date', { ascending: true })
+          .limit(3);
+        
+        if (error) throw error;
+        
+        const mappedEvents = data.map(e => ({
+          id: e.id,
+          title: e.title,
+          type: e.type,
+          startDate: e.start_date,
+          endDate: e.end_date,
+          location: e.location,
+          description: e.description,
+          maxParticipants: e.max_participants,
+          currentParticipants: e.current_participants || 0,
+          registrationRequired: e.registration_required
+        }));
+        
+        setUpcomingEvents(mappedEvents);
+      } catch (err) {
+        console.error("Fehler beim Laden der Events", err);
+      }
+    }
+    fetchEvents();
+  }, []);
 
   const quickActions = [
     { path: "/menu", icon: Coffee, label: "Speisekarte", desc: "Unsere Angebote" },
@@ -18,8 +53,8 @@ export function Home() {
     <div className="pb-28 bg-[#fdfbf7] min-h-screen">
       {/* Hero */}
       <div className="bg-grad-hero flex flex-col items-center pt-14 px-8 pb-10">
-        <div className="w-28 h-28 rounded-full bg-white/15 border-[3px] border-white/30 flex items-center justify-center text-[56px] mb-4 shadow-[0_8px_32px_rgba(60,20,5,0.4)]">
-          ☕
+        <div className="w-28 h-28 rounded-full bg-white border-[3px] border-white/30 flex items-center justify-center mb-4 shadow-[0_8px_32px_rgba(60,20,5,0.4)] overflow-hidden">
+          <img src="/Cafè.png" alt="Café Logo" className="w-full h-full object-cover" />
         </div>
         <p className="text-[11px] font-bold tracking-[3px] uppercase text-[#6b3520] mb-1.5">Café in der Moschee</p>
         <p className="text-[13px] italic text-[#7c4b2a] opacity-85 text-center leading-relaxed">

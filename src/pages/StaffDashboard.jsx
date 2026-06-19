@@ -111,7 +111,8 @@ export function StaffDashboard() {
                 <div className="flex justify-between items-start mb-3 pb-3 border-b border-gray-100">
                   <div>
                     <p className="font-bold text-lg m-0 leading-tight flex items-center gap-2">
-                      Tisch {order.tableNumber}
+                      <MapPin size={14} />
+                      {order.tableNumber}
                     </p>
                     <p className="text-gray-400 text-xs mt-1 m-0">
                       #{order.id.toString().slice(-4)} • {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}

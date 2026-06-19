@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MOCK_EVENTS, EVENT_TYPE_STYLES } from '../lib/mockData';
+import { EVENT_TYPE_STYLES } from '../lib/mockData';
 import { useToast } from '../contexts/ToastContext';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Calendar, MapPin, Users, ArrowLeft, Send } from 'lucide-react';
 import clsx from 'clsx';
+import { supabase } from '../lib/supabase';
 
 export function Events() {
   const navigate = useNavigate();
@@ -14,6 +15,44 @@ export function Events() {
   const [activeEventId, setActiveEventId] = useState(id ? Number(id) : null);
   const [registration, setRegistration] = useState({ name: '', email: '' });
   const [loading, setLoading] = useState(false);
+  
+  const [events, setEvents] = useState([]);
+  const [fetching, setFetching] = useState(true);
+
+  useEffect(() => {
+    async function fetchEvents() {
+      if (!supabase) return;
+      try {
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .order('start_date', { ascending: true });
+        
+        if (error) throw error;
+        
+        // Map db fields to camelCase as expected by the UI
+        const mappedEvents = data.map(e => ({
+          id: e.id,
+          title: e.title,
+          type: e.type,
+          startDate: e.start_date,
+          endDate: e.end_date,
+          location: e.location,
+          description: e.description,
+          maxParticipants: e.max_participants,
+          currentParticipants: e.current_participants || 0,
+          registrationRequired: e.registration_required
+        }));
+        
+        setEvents(mappedEvents);
+      } catch (err) {
+        console.error("Fehler beim Laden der Events", err);
+      } finally {
+        setFetching(false);
+      }
+    }
+    fetchEvents();
+  }, []);
 
   function handleRegister(e) {
     e.preventDefault();
@@ -27,7 +66,7 @@ export function Events() {
     }, 800);
   }
 
-  const selectedEvent = activeEventId ? MOCK_EVENTS.find(e => e.id === activeEventId) : null;
+  const selectedEvent = activeEventId ? events.find(e => e.id === activeEventId) : null;
 
   if (selectedEvent) {
     const style = EVENT_TYPE_STYLES[selectedEvent.type] || EVENT_TYPE_STYLES.other;
@@ -140,7 +179,7 @@ export function Events() {
       </div>
 
       <div className="px-4 flex flex-col gap-4">
-        {MOCK_EVENTS.map(event => {
+        {events.map(event => {
           const style = EVENT_TYPE_STYLES[event.type] || EVENT_TYPE_STYLES.other;
           const date = new Date(event.startDate);
           

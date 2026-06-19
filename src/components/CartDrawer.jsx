@@ -36,7 +36,7 @@ export function CartDrawer({ open, onClose }) {
       await new Promise(resolve => setTimeout(resolve, 800));
       
       const order = await createOrder({
-        tableNumber: Number(tableNumber),
+        tableNumber: tableNumber.trim(),
         customerName: customerName || null,
         note: note || null,
         items: items.map(i => ({ menuItemId: i.menuItemId, price: i.price, quantity: i.quantity }))
@@ -140,12 +140,12 @@ export function CartDrawer({ open, onClose }) {
           {step === "checkout" && (
             <div className="flex flex-col gap-4">
               <div>
-                <label className="text-[13px] font-bold block mb-1.5 text-gray-700">Tischnummer *</label>
+                <label className="text-[13px] font-bold block mb-1.5 text-gray-700">Bereich & Tischnummer *</label>
                 <input 
-                  type="number"
+                  type="text"
                   value={tableNumber}
                   onChange={e => setTableNumber(e.target.value)}
-                  placeholder="z.B. 4"
+                  placeholder="z.B. Terrasse, Tisch 4"
                   className="w-full p-3 rounded-xl border border-[#e5d9c8] text-sm box-border outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                 />
               </div>
