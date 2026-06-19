@@ -62,21 +62,35 @@ export function AuthProvider({ children }) {
     if (!supabase) {
       // Mock fallback for simple testing if Supabase is down
       if (email === 'admin' && password === 'admin') {
-        setUser({ role: 'admin', name: 'Admin User' });
-        return;
+        const u = { role: 'admin', name: 'Admin User' };
+        setUser(u);
+        return u;
       }
       if (email === 'staff' && password === 'staff') {
-        setUser({ role: 'staff', name: 'Staff User' });
-        return;
+        const u = { role: 'staff', name: 'Staff User' };
+        setUser(u);
+        return u;
       }
       throw new Error("Invalid credentials");
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
     if (error) throw error;
+
+    // Fetch the role immediately to return it for the redirect logic in Login.jsx
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+
+    return {
+      ...data.user,
+      role: profile?.role || 'staff'
+    };
   };
 
   const logout = async () => {
