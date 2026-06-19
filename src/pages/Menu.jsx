@@ -77,11 +77,6 @@ export function Menu() {
         )}
       </div>
 
-      <div className="px-4">
-        {/* Categories Filter */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-none snap-x">
-          <button 
-            onClick={() => setActiveCategory(null)}
       <div className="px-5 mb-8 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 min-w-max pb-2">
           {categories.map(category => {
@@ -212,7 +207,6 @@ export function Menu() {
             );
           })}
         </div>
-      </div>
 
       {/* Floating Cart Button (Only for staff) */}
       {canOrder && (
