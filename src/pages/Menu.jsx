@@ -37,16 +37,7 @@ export function Menu() {
     flash(item.id);
   }
 
-  const displayedCategories = activeCategory
-    ? MOCK_CATEGORIES.filter(c => c.id === activeCategory)
-    : MOCK_CATEGORIES;
 
-  function getIconForName(name) {
-    if (name.includes("Espresso") || name.includes("Cappuccino") || name.includes("Macchiato") || name.includes("Lungo")) return <Coffee size={32} />;
-    if (name.includes("Tee")) return <CupSoda size={32} />;
-    if (name.includes("Kakao") || name.includes("Waffel") || name.includes("Nachos") || name.includes("Sirup")) return <Sandwich size={32} />;
-    return <Coffee size={32} />;
-  }
 
   return (
     <div className="pb-36 bg-[#fdfbf7] min-h-screen">
