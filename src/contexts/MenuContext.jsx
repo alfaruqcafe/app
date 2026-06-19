@@ -90,6 +90,19 @@ export function MenuProvider({ children }) {
           items: cat.items.map(item => item.id === itemId ? { ...item, ...updatedItemData } : item)
         };
       }));
+
+      // Notify customers
+      try {
+        const { sendPushNotification } = await import('../lib/push');
+        await sendPushNotification({
+          title: `Neues auf der Speisekarte!`,
+          body: `${updatedItemData.name} wurde aktualisiert.`,
+          url: `/menu`,
+          targetRole: 'customer'
+        });
+      } catch (e) {
+        // Ignore errors
+      }
     } catch (err) {
       console.error('Error updating item:', err);
       alert('Fehler beim Speichern');

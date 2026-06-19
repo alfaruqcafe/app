@@ -1,0 +1,17 @@
+{
+  "name": "Al-Faruq Café",
+  "short_name": "Café",
+  "description": "Café in der Moschee",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fdfbf7",
+  "theme_color": "#c9a87c",
+  "icons": [
+    {
+      "src": "/Cafè.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

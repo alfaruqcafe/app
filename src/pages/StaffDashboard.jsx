@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders } from '../contexts/OrdersContext';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, CheckCircle2, Clock, ChefHat, PartyPopper } from 'lucide-react';
+import { LogOut, CheckCircle2, Clock, ChefHat, PartyPopper, Bell, MapPin } from 'lucide-react';
 import clsx from 'clsx';
 
 export function StaffDashboard() {
@@ -56,17 +56,34 @@ export function StaffDashboard() {
 
   return (
     <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
-      <div className="bg-grad text-white p-4 flex justify-between items-center shadow-md">
+      <div className="pt-12 px-5 pb-6 bg-grad text-white shadow-sm flex items-center justify-between">
         <div>
-          <h1 className="font-serif text-xl font-bold m-0">Staff Dashboard</h1>
-          <p className="text-white/70 text-xs m-0">Eingeloggt als {user.username}</p>
+          <h1 className="font-serif text-[24px] font-bold m-0 leading-tight">Mitarbeiter</h1>
+          <p className="text-white/70 text-[12px] m-0">Live Bestell-Übersicht</p>
         </div>
-        <button 
-          onClick={handleLogout}
-          className="bg-white/10 hover:bg-white/20 border-none w-10 h-10 rounded-xl flex items-center justify-center text-white cursor-pointer transition-colors"
-        >
-          <LogOut size={18} />
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={async () => {
+              try {
+                const { subscribeToPushNotifications } = await import('../lib/push');
+                await subscribeToPushNotifications(user.id, user.role);
+                alert("Push-Benachrichtigungen aktiviert!");
+              } catch (e) {
+                alert(e.message || "Fehler");
+              }
+            }}
+            className="border-none bg-white/10 w-10 h-10 rounded-xl flex items-center justify-center text-white cursor-pointer hover:bg-white/20 transition-colors"
+            title="Benachrichtigungen aktivieren"
+          >
+            <Bell size={18} />
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="border-none bg-white/10 w-10 h-10 rounded-xl flex items-center justify-center text-white cursor-pointer hover:bg-white/20 transition-colors"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="p-4">

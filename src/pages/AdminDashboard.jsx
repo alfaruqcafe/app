@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useMenu } from '../contexts/MenuContext';
-import { LogOut, Plus, Trash2, Edit2, X, Save } from 'lucide-react';
+import { LogOut, Plus, Trash2, Edit2, X, Save, Bell } from 'lucide-react';
 
 export function AdminDashboard() {
   const navigate = useNavigate();
@@ -54,12 +54,29 @@ export function AdminDashboard() {
           <h1 className="font-serif text-xl font-bold m-0 text-amber-400">Admin Dashboard</h1>
           <p className="text-white/70 text-xs m-0">Speisekarte verwalten</p>
         </div>
-        <button 
-          onClick={handleLogout}
-          className="bg-white/10 hover:bg-white/20 border-none w-10 h-10 rounded-xl flex items-center justify-center text-white cursor-pointer transition-colors"
-        >
-          <LogOut size={18} />
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={async () => {
+              try {
+                const { subscribeToPushNotifications } = await import('../lib/push');
+                await subscribeToPushNotifications(user.id, user.role);
+                alert("Push-Benachrichtigungen aktiviert!");
+              } catch (e) {
+                alert(e.message || "Fehler");
+              }
+            }}
+            className="bg-white/10 hover:bg-white/20 border-none w-10 h-10 rounded-xl flex items-center justify-center text-white cursor-pointer transition-colors"
+            title="Benachrichtigungen aktivieren"
+          >
+            <Bell size={18} />
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="bg-white/10 hover:bg-white/20 border-none w-10 h-10 rounded-xl flex items-center justify-center text-white cursor-pointer transition-colors"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="p-4">

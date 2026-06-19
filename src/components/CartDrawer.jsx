@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useOrders } from '../contexts/OrdersContext';
 import { useToast } from '../contexts/ToastContext';
-import { X, CheckCircle2, ShoppingBag, Plus, Minus, Trash2, ClipboardList, ArrowRight, ArrowLeft } from 'lucide-react';
+import { X, CheckCircle2, ShoppingBag, Plus, Minus, Trash2, ClipboardList, ArrowRight, ArrowLeft, Check, Bell } from 'lucide-react';
 import clsx from 'clsx';
 
 export function CartDrawer({ open, onClose }) {
@@ -188,22 +188,47 @@ export function CartDrawer({ open, onClose }) {
 
           {/* DONE STEP */}
           {step === "done" && (
-            <div className="text-center py-8 flex flex-col items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-grad text-white flex items-center justify-center">
-                <CheckCircle2 size={36} />
+            <div className="text-center py-10">
+              <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-4">
+                <Check size={32} strokeWidth={3} />
               </div>
-              <div>
-                <p className="font-bold text-lg m-0">Bestellung abgeschickt!</p>
-                <p className="text-gray-400 text-sm mt-1 mb-4">Deine Bestellung wird bearbeitet.</p>
-              </div>
-              {lastOrderId && (
+              <p className="font-bold text-lg mb-2 text-[#3d1f0f]">Bestellung abgeschlossen!</p>
+              <p className="text-gray-500 text-sm mb-6 max-w-[240px] mx-auto leading-relaxed">
+                Wir bereiten deine Bestellung jetzt vor.
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                {lastOrderId && (
+                  <button 
+                    onClick={() => { handleClose(); navigate(`/order/${lastOrderId}`); }}
+                    className="w-full p-3.5 rounded-xl border border-primary bg-transparent text-primary font-bold cursor-pointer hover:bg-primary/5 transition-colors"
+                  >
+                    Bestellung ansehen
+                  </button>
+                )}
+                
                 <button 
-                  onClick={() => { handleClose(); navigate(`/order/${lastOrderId}`); }}
-                  className="px-6 py-3 rounded-xl bg-grad text-white font-bold cursor-pointer flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-transform"
+                  onClick={async () => {
+                    try {
+                      const { subscribeToPushNotifications } = await import('../lib/push');
+                      await subscribeToPushNotifications(null, 'customer');
+                      showToast("Benachrichtigungen aktiviert!");
+                    } catch (err) {
+                      showToast(err.message || "Fehler beim Aktivieren der Benachrichtigungen");
+                    }
+                  }}
+                  className="w-full p-3.5 rounded-xl border-none bg-primary text-white font-bold cursor-pointer hover:bg-primary-light transition-colors flex items-center justify-center gap-2"
                 >
-                  <ClipboardList size={18} /> Bestellstatus verfolgen
+                  <Bell size={18} /> Bei Updates benachrichtigen
                 </button>
-              )}
+                
+                <button 
+                  onClick={handleClose}
+                  className="w-full p-3.5 rounded-xl border-none bg-gray-100 text-gray-700 font-bold cursor-pointer hover:bg-gray-200 transition-colors"
+                >
+                  Schließen
+                </button>
+              </div>
             </div>
           )}
         </div>

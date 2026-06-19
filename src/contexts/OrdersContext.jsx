@@ -135,6 +135,19 @@ export function OrdersProvider({ children }) {
 
       if (itemsError) throw itemsError;
 
+      // Notify staff
+      try {
+        const { sendPushNotification } = await import('../lib/push');
+        await sendPushNotification({
+          title: `Neue Bestellung!`,
+          body: `Tisch ${orderData.tableNumber} hat bestellt.`,
+          url: `/staff`,
+          targetRole: ['staff', 'admin']
+        });
+      } catch (e) {
+        // Ignore errors
+      }
+
       return orderResult.id;
     } catch (err) {
       console.error("Failed to add order", err);
@@ -158,6 +171,21 @@ export function OrdersProvider({ children }) {
         // Revert on error
         fetchOrders();
         throw error;
+      }
+      
+      // Notify customer (we don't have user_id linked to order right now unless they are logged in, 
+      // but we broadcast to 'customer' role for the demo or if we had targetUserId we'd use it)
+      const statusText = newStatus === 'completed' ? 'Fertig! 🎉' : newStatus === 'preparing' ? 'Wird zubereitet 👩‍🍳' : 'Abgeschlossen';
+      try {
+        const { sendPushNotification } = await import('../lib/push');
+        await sendPushNotification({
+          title: `Bestellung #${orderId.toString().slice(-4)}`,
+          body: `Status geändert: ${statusText}`,
+          url: `/order/${orderId}`,
+          targetRole: 'customer' // Ideal wäre hier die targetUserId des Kunden
+        });
+      } catch(e) {
+        // Ignore push errors so it doesn't break UI
       }
     } catch (err) {
       console.error("Failed to update status", err);
