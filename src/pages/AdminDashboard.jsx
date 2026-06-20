@@ -58,19 +58,36 @@ export function AdminDashboard() {
       try {
         const { sendPushNotification } = await import('../lib/push');
         await sendPushNotification({
-          title: `Neues Event: ${eventForm.title}`,
-          body: `${eventForm.location} • ${new Date(eventForm.startDate).toLocaleDateString()}`,
+          title: `Neues Event!`,
+          body: eventForm.title,
           url: `/events`,
           targetRole: 'customer'
         });
-      } catch (err) {}
+      } catch (e) {
+        // Ignore
+      }
 
       setIsAddingEvent(false);
       setEventForm({ title: '', type: 'other', startDate: '', endDate: '', location: '', description: '', maxParticipants: '', registrationRequired: false });
       fetchEvents();
     } catch (err) {
       console.error(err);
-      alert("Fehler beim Speichern: " + (err.message || JSON.stringify(err)));
+      alert('Fehler beim Speichern: ' + err.message);
+    }
+  }
+
+  async function handleTestPush() {
+    try {
+      const { sendPushNotification } = await import('../lib/push');
+      const res = await sendPushNotification({
+        title: `Test-Benachrichtigung`,
+        body: `Wenn du das liest, funktionieren die Push-Nachrichten!`,
+        url: `/`,
+        targetRole: 'admin'
+      });
+      alert(`Push erfolgreich gesendet an ${res.count} Geräte!`);
+    } catch (e) {
+      alert(`Fehler beim Senden: ${e.message}`);
     }
   }
 
@@ -150,6 +167,12 @@ export function AdminDashboard() {
           <p className="text-white/70 text-xs m-0">Speisekarte verwalten</p>
         </div>
         <div className="flex items-center gap-3">
+          <button 
+            onClick={handleTestPush}
+            className="border-none bg-white/20 px-3 py-2 rounded-xl font-bold text-[13px] text-white cursor-pointer hover:bg-white/30 transition-colors"
+          >
+            Push-Test
+          </button>
           <button 
             onClick={async () => {
               try {
