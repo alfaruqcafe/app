@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Coffee, Calendar, Building, ChevronRight, Bell } from 'lucide-react';
+import { Coffee, Calendar, Building, ChevronRight, Bell, Clock } from 'lucide-react';
 import { EVENT_TYPE_STYLES } from '../lib/mockData';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { supabase } from '../lib/supabase';
+import { useCart } from '../contexts/CartContext';
 
 export function Home() {
   const navigate = useNavigate();
+  const { lastOrderId } = useCart();
   const [upcomingEvents, setUpcomingEvents] = useState([]);
 
   useEffect(() => {
@@ -61,6 +63,27 @@ export function Home() {
           "Jeder Kauf unterstützt Moschee, Schule und Jugend."
         </p>
       </div>
+
+      {/* Active Order Banner */}
+      {lastOrderId && (
+        <div className="px-4 -mt-4 mb-4 relative z-10">
+          <button 
+            onClick={() => navigate(`/order/${lastOrderId}`)}
+            className="w-full bg-white border-2 border-primary/20 rounded-2xl p-4 flex justify-between items-center cursor-pointer shadow-lg shadow-primary/5 transition-transform active:scale-[0.98]"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Clock size={20} />
+              </div>
+              <div className="text-left">
+                <p className="font-bold text-[13px] text-primary m-0">Deine letzte Bestellung</p>
+                <p className="text-[11px] text-gray-500 m-0 mt-0.5">Status ansehen #{String(lastOrderId).slice(-4)}</p>
+              </div>
+            </div>
+            <ChevronRight size={18} className="text-primary/50" />
+          </button>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="p-4 bg-[#fdfbf7]">
