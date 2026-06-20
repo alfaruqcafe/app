@@ -1,7 +1,7 @@
 import webpush from 'web-push';
 import { createClient } from '@supabase/supabase-js';
 
-const publicVapidKey = process.env.VITE_VAPID_PUBLIC_KEY;
+const publicVapidKey = "BC2zPvA9_vshUlncxjdRhOq6IbBIrcfdQ2NU7Z4OLEKODHQ8-_ne-ax_3XGXxsiYUrMlMLNqsHCsTBm64xicBDE";
 const privateVapidKey = process.env.VAPID_PRIVATE_KEY;
 
 webpush.setVapidDetails(
@@ -11,8 +11,8 @@ webpush.setVapidDetails(
 );
 
 const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  "https://xbjsasgcsujggnzvidyj.supabase.co",
+  process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhianNhc2djc3VqZ2duenZpZHlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5MDI1ODYsImV4cCI6MjA5NzQ3ODU4Nn0.wjnokF374_AFQ7ibTU3RBoVqukilPFUPaMogNt1o_0c"
 );
 
 export default async function handler(req, res) {
