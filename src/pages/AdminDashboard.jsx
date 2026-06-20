@@ -428,10 +428,18 @@ export function AdminDashboard() {
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs font-bold text-gray-500 mb-1 block">Datum</label>
+                  <label className="text-xs font-bold text-gray-500 mb-1 block">Start</label>
                   <input 
                     required type="datetime-local"
                     value={eventForm.startDate} onChange={e => setEventForm({...eventForm, startDate: e.target.value})}
+                    className="w-full p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-primary bg-gray-50"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs font-bold text-gray-500 mb-1 block">Ende</label>
+                  <input 
+                    required type="datetime-local"
+                    value={eventForm.endDate} onChange={e => setEventForm({...eventForm, endDate: e.target.value})}
                     className="w-full p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-primary bg-gray-50"
                   />
                 </div>
