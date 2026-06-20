@@ -42,7 +42,7 @@ export function Login() {
       
       <div className="flex-1 flex flex-col justify-center px-6 pb-20">
         <div className="text-center mb-10">
-          <div className="w-24 h-24 mx-auto flex items-center justify-center mb-4 drop-shadow-[0_8px_16px_rgba(60,20,5,0.2)]">
+          <div className="w-24 h-24 mx-auto p-2 bg-white/40 backdrop-blur-md rounded-[1.5rem] flex items-center justify-center mb-4 drop-shadow-[0_8px_16px_rgba(60,20,5,0.15)]">
             <img src="/cafe-logo.png" alt="Café Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="font-serif text-2xl font-bold text-[#3d1f0f] m-0">Mitarbeiter Login</h1>

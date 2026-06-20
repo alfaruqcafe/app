@@ -4,7 +4,7 @@ self.addEventListener('push', function(event) {
     data = event.data.json();
   }
 
-  const title = data.title || 'Al-Faruq Café';
+  const title = data.title || 'Alfaruq Café';
   const options = {
     body: data.body || 'Du hast eine neue Benachrichtigung.',
     icon: '/cafe-logo.png',

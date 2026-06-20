@@ -53,7 +53,7 @@ export function Home() {
     <div className="pb-28 bg-[#fdfbf7] min-h-screen">
       {/* Hero */}
       <div className="bg-grad-hero flex flex-col items-center pt-14 px-8 pb-10">
-        <div className="w-32 h-32 mb-4 flex items-center justify-center drop-shadow-[0_8px_24px_rgba(60,20,5,0.3)]">
+        <div className="w-32 h-32 mb-4 p-2 bg-white/40 backdrop-blur-md rounded-3xl flex items-center justify-center drop-shadow-[0_8px_24px_rgba(60,20,5,0.2)]">
           <img src="/cafe-logo.png" alt="Café Logo" className="w-full h-full object-contain" />
         </div>
         <p className="text-[11px] font-bold tracking-[3px] uppercase text-[#6b3520] mb-1.5">Café in der Moschee</p>
