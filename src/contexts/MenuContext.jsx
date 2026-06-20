@@ -64,6 +64,21 @@ export function MenuProvider({ children }) {
 
   useEffect(() => {
     fetchMenu();
+    
+    if (!supabase) return;
+    
+    const channel = supabase.channel('public:menu_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'menu_items' }, () => {
+        fetchMenu();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, () => {
+        fetchMenu();
+      })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchMenu]);
 
   // Admin function to update an item

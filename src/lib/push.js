@@ -24,7 +24,7 @@ export async function subscribeToPushNotifications(userId = null, role = 'custom
   const registration = await navigator.serviceWorker.register('/sw.js');
   await navigator.serviceWorker.ready;
 
-  const publicVapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+  const publicVapidKey = "BC2zPvA9_vshUlncxjdRhOq6IbBIrcfdQ2NU7Z4OLEKODHQ8-_ne-ax_3XGXxsiYUrMlMLNqsHCsTBm64xicBDE";
   if (!publicVapidKey) {
     throw new Error('VAPID Public Key fehlt in den Umgebungsvariablen.');
   }
