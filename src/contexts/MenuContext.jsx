@@ -108,7 +108,7 @@ export function MenuProvider({ children }) {
   const addCategory = useCallback(async (name) => {
     if (!supabase) return;
     try {
-      const { error } = await supabase.from('menu_categories').insert({ name });
+      const { error } = await supabase.from('categories').insert({ name });
       if (error) throw error;
       fetchMenu();
     } catch (err) {
@@ -120,7 +120,7 @@ export function MenuProvider({ children }) {
   const deleteCategory = useCallback(async (id) => {
     if (!supabase) return;
     try {
-      const { error } = await supabase.from('menu_categories').delete().eq('id', id);
+      const { error } = await supabase.from('categories').delete().eq('id', id);
       if (error) throw error;
       fetchMenu();
     } catch (err) {
