@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Coffee, Calendar, Building, ChevronRight } from 'lucide-react';
+import { Coffee, Calendar, Building, ChevronRight, Bell } from 'lucide-react';
 import { EVENT_TYPE_STYLES } from '../lib/mockData';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
@@ -132,6 +132,34 @@ export function Home() {
             );
           })}
         </div>
+      </div>
+
+      {/* Push Notification Banner */}
+      <div className="px-4 pb-4">
+        <button 
+          onClick={async () => {
+            try {
+              const { subscribeToPushNotifications } = await import('../lib/push');
+              await subscribeToPushNotifications(null, 'customer');
+              alert("Push-Benachrichtigungen aktiviert! Du wirst über neue Events und Speisekarten-Änderungen informiert.");
+            } catch (e) {
+              if (e.message?.includes('nicht unterstützt')) {
+                alert("Um Push-Benachrichtigungen auf dem iPhone zu erhalten, musst du diese Seite zuerst als App installieren:\n\n1. Tippe auf das Teilen-Symbol (□↑) unten in Safari\n2. Wähle 'Zum Home-Bildschirm'\n3. Öffne die App vom Home-Bildschirm\n4. Dann kannst du Benachrichtigungen aktivieren!");
+              } else {
+                alert(e.message || "Fehler beim Aktivieren der Benachrichtigungen.");
+              }
+            }
+          }}
+          className="w-full bg-gradient-to-r from-primary to-primary-light text-white border-none rounded-2xl p-4 flex items-center gap-3 cursor-pointer shadow-lg shadow-primary/20 transition-transform active:scale-[0.98]"
+        >
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+            <Bell size={20} />
+          </div>
+          <div className="text-left">
+            <p className="font-bold text-[13px] m-0">Benachrichtigungen aktivieren</p>
+            <p className="text-[11px] text-white/70 m-0 mt-0.5">Erhalte Updates zu Events & Speisekarte</p>
+          </div>
+        </button>
       </div>
 
       {/* Staff Link */}

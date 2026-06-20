@@ -24,7 +24,7 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5d9c8] flex justify-around items-center h-16 z-[100] max-w-[480px] mx-auto pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5d9c8] flex justify-around items-center z-[100] max-w-[480px] mx-auto pb-safe" style={{ height: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}>
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = location.pathname === item.to || (item.to !== '/' && location.pathname.startsWith(item.to));

@@ -9,7 +9,7 @@ import clsx from 'clsx';
 export function CartDrawer({ open, onClose }) {
   const navigate = useNavigate();
   const { items, count, total, lastOrderId, updateQuantity, removeItem, clearCart, setLastOrderId } = useCart();
-  const { createOrder } = useOrders();
+  const { addOrder } = useOrders();
   const { showToast } = useToast();
   
   const [step, setStep] = useState("cart");
@@ -35,7 +35,7 @@ export function CartDrawer({ open, onClose }) {
       // Simulate network request
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      const orderId = await createOrder({
+      const orderId = await addOrder({
         tableNumber: tableNumber.trim(),
         customerName: customerName || null,
         note: note || null,

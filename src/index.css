@@ -39,3 +39,8 @@
 .bg-grad-hero {
   background: linear-gradient(180deg, #4a2210 0%, #7c3f1e 22%, #b87240 52%, #dfc08a 72%, #f5ecd7 88%, #fdfbf7 100%);
 }
+
+/* iPhone safe area */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
