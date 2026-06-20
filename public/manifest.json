@@ -8,7 +8,7 @@
   "theme_color": "#c9a87c",
   "icons": [
     {
-      "src": "/Cafè.png",
+      "src": "/cafe-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

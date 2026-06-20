@@ -7,8 +7,8 @@ self.addEventListener('push', function(event) {
   const title = data.title || 'Al-Faruq Café';
   const options = {
     body: data.body || 'Du hast eine neue Benachrichtigung.',
-    icon: '/Cafè.png',
-    badge: '/Cafè.png',
+    icon: '/cafe-logo.png',
+    badge: '/cafe-logo.png',
     data: data.url || '/'
   };
 

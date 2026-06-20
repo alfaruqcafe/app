@@ -54,7 +54,7 @@ export function Home() {
       {/* Hero */}
       <div className="bg-grad-hero flex flex-col items-center pt-14 px-8 pb-10">
         <div className="w-28 h-28 rounded-full bg-white border-[3px] border-white/30 flex items-center justify-center mb-4 shadow-[0_8px_32px_rgba(60,20,5,0.4)] overflow-hidden">
-          <img src="/Cafè.png" alt="Café Logo" className="w-full h-full object-cover" />
+          <img src="/cafe-logo.png" alt="Café Logo" className="w-full h-full object-cover" />
         </div>
         <p className="text-[11px] font-bold tracking-[3px] uppercase text-[#6b3520] mb-1.5">Café in der Moschee</p>
         <p className="text-[13px] italic text-[#7c4b2a] opacity-85 text-center leading-relaxed">
