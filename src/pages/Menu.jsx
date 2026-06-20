@@ -45,7 +45,7 @@ export function Menu() {
       <div className="pt-12 px-5 pb-6 bg-grad rounded-b-[2.5rem] shadow-sm mb-6">
         {canOrder && (
           <button 
-            onClick={() => navigate(user.role === 'admin' ? '/admin' : '/staff')}
+            onClick={() => navigate('/')}
             className="mb-4 flex items-center gap-1.5 bg-white/10 text-white border-none w-max px-3 py-1.5 rounded-full cursor-pointer hover:bg-white/20 transition-colors text-[13px] font-bold"
           >
             ← Zurück zur Übersicht
