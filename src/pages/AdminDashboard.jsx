@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase';
 export function AdminDashboard() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
-  const { categories, updateItem } = useMenu();
+  const { categories, updateItem, addCategory, deleteCategory, addItem, deleteItem } = useMenu();
   
   const [activeTab, setActiveTab] = useState('menu'); // 'menu' or 'events'
   
@@ -104,14 +104,41 @@ export function AdminDashboard() {
     });
   }
 
+  function handleAddCategory() {
+    const name = prompt("Name der neuen Kategorie:");
+    if (name) addCategory(name);
+  }
+
+  function handleDeleteCategory(id) {
+    if (confirm("Kategorie wirklich löschen?")) deleteCategory(id);
+  }
+
+  function handleAddItemClick(categoryId) {
+    setEditingItem({ categoryId, itemId: null });
+    setEditForm({ name: '', price: '', description: '', imageUrl: '' });
+  }
+
+  function handleDeleteItemClick(id) {
+    if (confirm("Artikel wirklich löschen?")) deleteItem(id);
+  }
+
   function handleSaveEdit(e) {
     e.preventDefault();
-    updateItem(editingItem.categoryId, editingItem.itemId, {
-      name: editForm.name,
-      price: parseFloat(editForm.price),
-      description: editForm.description,
-      imageUrl: editForm.imageUrl
-    });
+    if (editingItem.itemId) {
+      updateItem(editingItem.categoryId, editingItem.itemId, {
+        name: editForm.name,
+        price: parseFloat(editForm.price),
+        description: editForm.description,
+        imageUrl: editForm.imageUrl
+      });
+    } else {
+      addItem(editingItem.categoryId, {
+        name: editForm.name,
+        price: parseFloat(editForm.price),
+        description: editForm.description,
+        imageUrl: editForm.imageUrl
+      });
+    }
     setEditingItem(null);
   }
 
@@ -168,7 +195,10 @@ export function AdminDashboard() {
           <>
             <div className="flex justify-between items-center mb-6">
               <h2 className="font-bold text-lg text-[#3d1f0f]">Kategorien & Artikel</h2>
-              <button className="flex items-center gap-1 bg-primary text-white px-3 py-2 rounded-lg text-sm font-bold cursor-pointer hover:bg-primary-light transition-colors border-none">
+              <button 
+                onClick={handleAddCategory}
+                className="flex items-center gap-1 bg-primary text-white px-3 py-2 rounded-lg text-sm font-bold cursor-pointer hover:bg-primary-light transition-colors border-none"
+              >
                 <Plus size={16} /> Kategorie
               </button>
             </div>
@@ -179,8 +209,13 @@ export function AdminDashboard() {
                   <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
                     <h3 className="font-bold text-[#3d1f0f] m-0">{category.name}</h3>
                     <div className="flex gap-2">
-                      <button className="text-gray-400 hover:text-primary bg-transparent border-none cursor-pointer"><Edit2 size={16} /></button>
-                      <button className="text-gray-400 hover:text-red-500 bg-transparent border-none cursor-pointer"><Trash2 size={16} /></button>
+                      <button 
+                        onClick={() => handleDeleteCategory(category.id)}
+                        className="text-gray-400 hover:text-red-500 bg-transparent border-none cursor-pointer"
+                        title="Kategorie löschen"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
 
@@ -205,7 +240,10 @@ export function AdminDashboard() {
                           >
                             <Edit2 size={14} />
                           </button>
-                          <button className="w-8 h-8 rounded-lg bg-red-50 text-red-600 border-none flex items-center justify-center cursor-pointer hover:bg-red-100">
+                          <button 
+                            onClick={() => handleDeleteItemClick(item.id)}
+                            className="w-8 h-8 rounded-lg bg-red-50 text-red-600 border-none flex items-center justify-center cursor-pointer hover:bg-red-100"
+                          >
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -213,7 +251,10 @@ export function AdminDashboard() {
                     ))}
                   </div>
 
-                  <button className="mt-4 w-full py-2.5 border-2 border-dashed border-[#e5d9c8] rounded-xl text-gray-500 font-bold text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-gray-50 hover:text-primary transition-colors bg-transparent">
+                  <button 
+                    onClick={() => handleAddItemClick(category.id)}
+                    className="mt-4 w-full py-2.5 border-2 border-dashed border-[#e5d9c8] rounded-xl text-gray-500 font-bold text-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-gray-50 hover:text-primary transition-colors bg-transparent"
+                  >
                     <Plus size={16} /> Artikel hinzufügen
                   </button>
                 </div>

@@ -35,14 +35,15 @@ export function CartDrawer({ open, onClose }) {
       // Simulate network request
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      const order = await createOrder({
+      const orderId = await createOrder({
         tableNumber: tableNumber.trim(),
         customerName: customerName || null,
         note: note || null,
+        totalPrice: total,
         items: items.map(i => ({ menuItemId: i.menuItemId, price: i.price, quantity: i.quantity }))
       });
       
-      setLastOrderId(order.id);
+      setLastOrderId(orderId);
       clearCart();
       setTableNumber("");
       setCustomerName("");
@@ -50,7 +51,8 @@ export function CartDrawer({ open, onClose }) {
       setStep("done");
       showToast("Bestellung erfolgreich aufgegeben!");
     } catch (err) {
-      setError("Fehler bei der Bestellung. Bitte nochmal versuchen.");
+      console.error(err);
+      setError("Fehler bei der Bestellung: " + (err.message || "Unbekannt"));
     } finally {
       setLoading(false);
     }

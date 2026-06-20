@@ -82,7 +82,6 @@ export function MenuProvider({ children }) {
         
       if (error) throw error;
       
-      // Update local state directly for snappy UI
       setCategories(prev => prev.map(cat => {
         if (cat.id !== categoryId) return cat;
         return {
@@ -91,7 +90,6 @@ export function MenuProvider({ children }) {
         };
       }));
 
-      // Notify customers
       try {
         const { sendPushNotification } = await import('../lib/push');
         await sendPushNotification({
@@ -100,17 +98,82 @@ export function MenuProvider({ children }) {
           url: `/menu`,
           targetRole: 'customer'
         });
-      } catch (e) {
-        // Ignore errors
-      }
+      } catch (e) {}
     } catch (err) {
       console.error('Error updating item:', err);
-      alert('Fehler beim Speichern');
+      alert('Fehler beim Speichern: ' + err.message);
     }
   }, []);
 
+  const addCategory = useCallback(async (name) => {
+    if (!supabase) return;
+    try {
+      const { error } = await supabase.from('menu_categories').insert({ name });
+      if (error) throw error;
+      fetchMenu();
+    } catch (err) {
+      console.error(err);
+      alert('Fehler beim Hinzufügen der Kategorie: ' + err.message);
+    }
+  }, [fetchMenu]);
+
+  const deleteCategory = useCallback(async (id) => {
+    if (!supabase) return;
+    try {
+      const { error } = await supabase.from('menu_categories').delete().eq('id', id);
+      if (error) throw error;
+      fetchMenu();
+    } catch (err) {
+      console.error(err);
+      alert('Fehler beim Löschen der Kategorie: ' + err.message);
+    }
+  }, [fetchMenu]);
+
+  const addItem = useCallback(async (categoryId, itemData) => {
+    if (!supabase) return;
+    try {
+      const { error } = await supabase.from('menu_items').insert({
+        category_id: categoryId,
+        name: itemData.name,
+        price: parseFloat(itemData.price),
+        description: itemData.description,
+        image_url: itemData.imageUrl
+      });
+      if (error) throw error;
+      
+      try {
+        const { sendPushNotification } = await import('../lib/push');
+        await sendPushNotification({
+          title: `Neu: ${itemData.name}!`,
+          body: `Jetzt neu auf unserer Speisekarte.`,
+          url: `/menu`,
+          targetRole: 'customer'
+        });
+      } catch (e) {}
+      
+      fetchMenu();
+    } catch (err) {
+      console.error(err);
+      alert('Fehler beim Hinzufügen des Artikels: ' + err.message);
+    }
+  }, [fetchMenu]);
+
+  const deleteItem = useCallback(async (id) => {
+    if (!supabase) return;
+    try {
+      const { error } = await supabase.from('menu_items').delete().eq('id', id);
+      if (error) throw error;
+      fetchMenu();
+    } catch (err) {
+      console.error(err);
+      alert('Fehler beim Löschen des Artikels: ' + err.message);
+    }
+  }, [fetchMenu]);
+
   return (
-    <MenuContext.Provider value={{ categories, updateItem, loading, refreshMenu: fetchMenu }}>
+    <MenuContext.Provider value={{ 
+      categories, updateItem, addCategory, deleteCategory, addItem, deleteItem, loading, refreshMenu: fetchMenu 
+    }}>
       {children}
     </MenuContext.Provider>
   );
