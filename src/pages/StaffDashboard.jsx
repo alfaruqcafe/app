@@ -63,6 +63,12 @@ export function StaffDashboard() {
         </div>
         <div className="flex items-center gap-3">
           <button 
+            onClick={() => navigate('/menu')}
+            className="border-none bg-white/20 px-3 py-2 rounded-xl font-bold text-[13px] text-white cursor-pointer hover:bg-white/30 transition-colors"
+          >
+            + Bestellung
+          </button>
+          <button 
             onClick={async () => {
               try {
                 const { subscribeToPushNotifications } = await import('../lib/push');

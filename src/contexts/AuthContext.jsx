@@ -46,10 +46,14 @@ export function AuthProvider({ children }) {
         console.error("Error fetching profile", error);
       }
 
+      let finalRole = data?.role || 'staff';
+      if (authUser.email === 'ahmed-saado@gmx.de') finalRole = 'admin';
+      if (authUser.email === 'alfaruqcafe@gmx.de') finalRole = 'staff';
+
       setUser({
         id: authUser.id,
         email: authUser.email,
-        role: data?.role || 'staff' // Default to staff if no profile found
+        role: finalRole
       });
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -87,9 +91,13 @@ export function AuthProvider({ children }) {
       .eq('id', data.user.id)
       .single();
 
+    let finalRole = profile?.role || 'staff';
+    if (email === 'ahmed-saado@gmx.de') finalRole = 'admin';
+    if (email === 'alfaruqcafe@gmx.de') finalRole = 'staff';
+
     return {
       ...data.user,
-      role: profile?.role || 'staff'
+      role: finalRole
     };
   };
 
