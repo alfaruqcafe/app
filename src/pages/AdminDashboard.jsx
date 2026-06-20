@@ -45,7 +45,7 @@ export function AdminDashboard() {
         title: eventForm.title,
         type: eventForm.type,
         start_date: eventForm.startDate,
-        end_date: eventForm.endDate,
+        end_date: eventForm.endDate || null,
         location: eventForm.location,
         description: eventForm.description,
         max_participants: eventForm.maxParticipants ? parseInt(eventForm.maxParticipants) : null,
@@ -69,7 +69,8 @@ export function AdminDashboard() {
       setEventForm({ title: '', type: 'other', startDate: '', endDate: '', location: '', description: '', maxParticipants: '', registrationRequired: false });
       fetchEvents();
     } catch (err) {
-      alert("Fehler beim Hinzufügen des Events");
+      console.error(err);
+      alert("Fehler beim Speichern: " + (err.message || JSON.stringify(err)));
     }
   }
 
