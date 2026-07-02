@@ -266,12 +266,76 @@ export function OrdersProvider({ children }) {
     }
   };
 
+  const updateSingleItemUnitPaymentStatus = async (orderId, itemId, isPaid) => {
+    if (!supabase) return;
+
+    try {
+      // Find the order item in local state
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+      const item = order.items.find(i => i.id === itemId);
+      if (!item) return;
+
+      if (item.quantity <= 1) {
+        await updateOrderItemPaymentStatus(orderId, itemId, isPaid);
+        return;
+      }
+
+      // If quantity > 1, we split the row
+      // 1. Update original row to quantity - 1
+      const { error: updateError } = await supabase
+        .from('order_items')
+        .update({ quantity: item.quantity - 1 })
+        .eq('id', itemId);
+
+      if (updateError) throw updateError;
+
+      // 2. Insert new row for the single unit with new payment status
+      const { error: insertError } = await supabase
+        .from('order_items')
+        .insert({
+          order_id: orderId,
+          menu_item_id: item.menuItemId,
+          quantity: 1,
+          unit_price: item.price,
+          is_paid: isPaid
+        });
+
+      if (insertError) throw insertError;
+
+      // 3. Fetch status of all order items for this order to compute correct parent order payment status
+      const { data: siblingItems, error: queryError } = await supabase
+        .from('order_items')
+        .select('is_paid')
+        .eq('order_id', orderId);
+
+      if (queryError) throw queryError;
+
+      const allPaid = siblingItems.every(item => item.is_paid);
+
+      // 4. Update the main order row
+      const { error: orderError } = await supabase
+        .from('orders')
+        .update({ is_paid: allPaid })
+        .eq('id', orderId);
+
+      if (orderError) throw orderError;
+
+      // 5. Refetch orders to sync state
+      await fetchOrders();
+
+    } catch (err) {
+      console.error("Failed to update single item unit payment status:", err);
+      fetchOrders();
+    }
+  };
+
   const getOrder = (id) => orders.find(o => o.id === Number(id));
 
   const activeOrders = useMemo(() => orders.filter(o => isActiveStatus(o.status)), [orders]);
 
   return (
-    <OrdersContext.Provider value={{ orders, activeOrders, addOrder, updateOrderStatus, updateOrderPaymentStatus, updateOrderItemPaymentStatus, getOrder, loading }}>
+    <OrdersContext.Provider value={{ orders, activeOrders, addOrder, updateOrderStatus, updateOrderPaymentStatus, updateOrderItemPaymentStatus, updateSingleItemUnitPaymentStatus, getOrder, loading }}>
       {children}
     </OrdersContext.Provider>
   );

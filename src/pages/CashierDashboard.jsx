@@ -8,7 +8,7 @@ import clsx from 'clsx';
 export function CashierDashboard() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
-  const { orders, updateOrderPaymentStatus, updateOrderItemPaymentStatus } = useOrders();
+  const { orders, updateOrderPaymentStatus, updateSingleItemUnitPaymentStatus } = useOrders();
   const [filter, setFilter] = useState('unpaid'); // 'unpaid', 'paid', 'all'
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -29,29 +29,96 @@ export function CashierDashboard() {
     navigate('/');
   }
 
-  // Filter and search orders
-  const filteredOrders = useMemo(() => {
-    return orders.filter(order => {
+  const handleTablePaymentStatus = async (table, isPaid) => {
+    try {
+      const promises = table.orders.map(order => updateOrderPaymentStatus(order.id, isPaid));
+      await Promise.all(promises);
+    } catch (err) {
+      console.error("Failed to update table payment status:", err);
+    }
+  };
+
+  // Group orders by table number
+  const tables = useMemo(() => {
+    const groups = {};
+    orders.forEach(order => {
+      if (order.status === 'cancelled') return;
+
+      const tNum = order.tableNumber;
+      if (!groups[tNum]) {
+        groups[tNum] = {
+          tableNumber: tNum,
+          orders: [],
+          customerNames: new Set(),
+          items: [],
+          notes: [],
+          totalPrice: 0,
+          isPaid: true
+        };
+      }
+
+      const group = groups[tNum];
+      group.orders.push(order);
+      if (order.customerName) {
+        group.customerNames.add(order.customerName);
+      }
+      if (order.note) {
+        group.notes.push(order.note);
+      }
+
+      order.items.forEach(item => {
+        for (let i = 0; i < item.quantity; i++) {
+          group.items.push({
+            ...item,
+            quantity: 1,
+            orderId: order.id
+          });
+        }
+      });
+    });
+
+    return Object.values(groups).map(group => {
+      const namesArray = Array.from(group.customerNames);
+      const allItemsPaid = group.items.length > 0 ? group.items.every(item => item.isPaid) : true;
+      const tableTotalPrice = group.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const tableUnpaidPrice = group.items.reduce((sum, item) => sum + (item.isPaid ? 0 : item.price * item.quantity), 0);
+
+      return {
+        tableNumber: group.tableNumber,
+        orders: group.orders,
+        customerName: namesArray.join(', '),
+        items: group.items,
+        notes: group.notes,
+        totalPrice: tableTotalPrice,
+        unpaidTotalPrice: tableUnpaidPrice,
+        isPaid: allItemsPaid
+      };
+    });
+  }, [orders]);
+
+  // Filter and search tables
+  const filteredTables = useMemo(() => {
+    return tables.filter(table => {
       // 1. Filter by payment status
-      if (filter === 'unpaid' && order.isPaid) return false;
-      if (filter === 'paid' && !order.isPaid) return false;
+      if (filter === 'unpaid' && table.isPaid) return false;
+      if (filter === 'paid' && !table.isPaid) return false;
 
       // 2. Filter by search term (table number or customer name)
       if (searchTerm.trim() !== '') {
         const term = searchTerm.toLowerCase();
-        const matchesTable = String(order.tableNumber).toLowerCase().includes(term);
-        const matchesName = order.customerName ? order.customerName.toLowerCase().includes(term) : false;
+        const matchesTable = String(table.tableNumber).toLowerCase().includes(term);
+        const matchesName = table.customerName ? table.customerName.toLowerCase().includes(term) : false;
         return matchesTable || matchesName;
       }
 
       return true;
     });
-  }, [orders, filter, searchTerm]);
+  }, [tables, filter, searchTerm]);
 
-  // Count helper functions
-  const unpaidCount = useMemo(() => orders.filter(o => !o.isPaid).length, [orders]);
-  const paidCount = useMemo(() => orders.filter(o => o.isPaid).length, [orders]);
-  const totalCount = orders.length;
+  // Count helper functions based on tables
+  const unpaidCount = useMemo(() => tables.filter(t => !t.isPaid).length, [tables]);
+  const paidCount = useMemo(() => tables.filter(t => t.isPaid).length, [tables]);
+  const totalCount = tables.length;
 
   const getStatusIconAndLabel = (status) => {
     switch (status) {
@@ -151,7 +218,7 @@ export function CashierDashboard() {
         </div>
 
         {/* Orders list */}
-        {filteredOrders.length === 0 ? (
+        {filteredTables.length === 0 ? (
           <div className="text-center py-16 text-gray-400 bg-white rounded-3xl border border-[#e5d9c8] p-8 shadow-sm">
             <Receipt size={48} className="mx-auto text-gray-300 mb-3" strokeWidth={1.5} />
             <p className="font-bold text-sm text-[#3d1f0f]">Keine Bestellungen gefunden</p>
@@ -159,47 +226,54 @@ export function CashierDashboard() {
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            {filteredOrders.map(order => {
-              const statusInfo = getStatusIconAndLabel(order.status);
-              const StatusIcon = statusInfo.icon;
+            {filteredTables.map(table => {
               return (
                 <div
-                  key={order.id}
+                  key={table.tableNumber}
                   className={clsx(
                     "bg-white rounded-3xl p-5 shadow-sm border transition-all duration-300 flex flex-col gap-4",
-                    order.isPaid ? "border-green-100" : "border-[#e5d9c8] hover:shadow-md"
+                    table.isPaid ? "border-green-100" : "border-[#e5d9c8] hover:shadow-md"
                   )}
                 >
                   {/* Order header info */}
                   <div className="flex justify-between items-start pb-3 border-b border-gray-100">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-base text-[#3d1f0f]">{order.tableNumber}</span>
-                        {order.customerName && (
+                        <span className="font-bold text-base text-[#3d1f0f]">Tisch {table.tableNumber}</span>
+                        {table.customerName && (
                           <span className="text-xs text-gray-500 flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-full">
                             <User size={10} />
-                            {order.customerName}
+                            {table.customerName}
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-400 text-[11px] m-0 mt-1">
-                        #{String(order.id).slice(-4)} • {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
+                      <div className="flex flex-wrap gap-x-2 gap-y-1 mt-1">
+                        {table.orders.map(o => (
+                          <span key={o.id} className="text-gray-450 text-[11px] m-0">
+                            #{String(o.id).slice(-4)} ({new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
+                          </span>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="flex flex-col items-end gap-1.5">
-                      {/* Status badge */}
-                      <span className={clsx("flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border", statusInfo.className)}>
-                        <StatusIcon size={12} />
-                        {statusInfo.label}
-                      </span>
+                      {table.orders.map(o => {
+                        const statusInfo = getStatusIconAndLabel(o.status);
+                        const StatusIcon = statusInfo.icon;
+                        return (
+                          <span key={o.id} className={clsx("flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border", statusInfo.className)}>
+                            <StatusIcon size={10} />
+                            #{String(o.id).slice(-4)}: {statusInfo.label}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
 
                   {/* Order Items */}
                   <div className="flex flex-col gap-2">
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-sm py-1 border-b border-gray-50/50 last:border-none">
+                    {table.items.map((item, idx) => (
+                      <div key={`${item.id}-${idx}`} className="flex justify-between items-center text-sm py-1 border-b border-gray-50/50 last:border-none">
                         <span className="text-[#3d1f0f] flex items-center gap-1">
                           <span className="text-gray-400 font-bold mr-1">{item.quantity}x</span> {item.menuItemName}
                         </span>
@@ -209,7 +283,7 @@ export function CashierDashboard() {
                             <div className="flex items-center gap-1 bg-green-50 text-green-700 font-medium text-[11px] px-2 py-0.5 rounded-full border border-green-150">
                               <span>Bezahlt</span>
                               <button 
-                                onClick={() => updateOrderItemPaymentStatus(order.id, item.id, false)}
+                                onClick={() => updateSingleItemUnitPaymentStatus(item.orderId, item.id, false)}
                                 className="border-none bg-transparent text-green-700 hover:text-red-500 cursor-pointer flex items-center p-0 ml-1 transition-colors"
                                 title="Als unbezahlt markieren"
                               >
@@ -218,7 +292,7 @@ export function CashierDashboard() {
                             </div>
                           ) : (
                             <button
-                              onClick={() => updateOrderItemPaymentStatus(order.id, item.id, true)}
+                              onClick={() => updateSingleItemUnitPaymentStatus(item.orderId, item.id, true)}
                               className="border-none bg-gray-100 hover:bg-primary/10 text-gray-600 hover:text-primary font-bold text-[11px] px-2 py-0.5 rounded-full cursor-pointer transition-all flex items-center gap-0.5"
                             >
                               <Check size={12} /> Kassieren
@@ -228,9 +302,13 @@ export function CashierDashboard() {
                       </div>
                     ))}
 
-                    {order.note && (
-                      <div className="mt-1 text-xs text-amber-800 bg-amber-50 p-2.5 rounded-xl border border-amber-100">
-                        <strong>Notiz:</strong> {order.note}
+                    {table.notes.length > 0 && (
+                      <div className="mt-1 flex flex-col gap-1">
+                        {table.notes.map((note, idx) => (
+                          <div key={idx} className="text-xs text-amber-800 bg-amber-50 p-2.5 rounded-xl border border-amber-100">
+                            <strong>Notiz (Bestellung {idx + 1}):</strong> {note}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -238,18 +316,27 @@ export function CashierDashboard() {
                   {/* Pricing and Action */}
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                     <div>
-                      <p className="text-[10px] text-gray-400 m-0 uppercase tracking-wider font-bold">Gesamtsumme</p>
-                      <p className="text-xl font-bold text-primary m-0 mt-0.5">{order.totalPrice.toFixed(2)} €</p>
+                      <p className="text-[10px] text-gray-400 m-0 uppercase tracking-wider font-bold">
+                        {table.isPaid ? 'Gesamtsumme' : 'Zu zahlen (Offen)'}
+                      </p>
+                      <p className="text-xl font-bold text-primary m-0 mt-0.5">
+                        {table.isPaid ? `${table.totalPrice.toFixed(2)} €` : `${table.unpaidTotalPrice.toFixed(2)} €`}
+                      </p>
+                      {!table.isPaid && table.unpaidTotalPrice !== table.totalPrice && (
+                        <p className="text-[10px] text-gray-400 m-0 mt-0.5">
+                          Gesamt: {table.totalPrice.toFixed(2)} €
+                        </p>
+                      )}
                     </div>
 
-                    {order.isPaid ? (
+                    {table.isPaid ? (
                       <div className="flex items-center gap-2">
                         <div className="bg-green-100 text-green-700 font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5">
                           <Check size={16} strokeWidth={2.5} />
                           Bezahlt
                         </div>
                         <button
-                          onClick={() => updateOrderPaymentStatus(order.id, false)}
+                          onClick={() => handleTablePaymentStatus(table, false)}
                           className="bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-red-600 font-bold text-xs px-3 py-2.5 rounded-xl border-none cursor-pointer flex items-center gap-1 transition-all active:scale-95"
                           title="Als unbezahlt markieren"
                         >
@@ -258,7 +345,7 @@ export function CashierDashboard() {
                       </div>
                     ) : (
                       <button
-                        onClick={() => updateOrderPaymentStatus(order.id, true)}
+                        onClick={() => handleTablePaymentStatus(table, true)}
                         className="bg-primary hover:bg-primary-light text-white font-bold text-xs px-5 py-2.5 rounded-xl border-none cursor-pointer flex items-center gap-1.5 transition-all shadow-md shadow-primary/10 active:scale-95"
                       >
                         <Receipt size={16} />
