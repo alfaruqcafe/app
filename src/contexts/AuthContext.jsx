@@ -10,21 +10,32 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Check active sessions and sets the user
     if (supabase) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
         if (session?.user) {
           fetchProfile(session.user);
         } else {
-          setLoading(false);
+          // Kein Kunden-Login nötig: jeder Besucher bekommt eine anonyme,
+          // dauerhafte Identität, damit Bestellungen ihm zugeordnet werden können.
+          const { data, error } = await supabase.auth.signInAnonymously();
+          if (error) {
+            console.error('Anonymous sign-in failed', error);
+            setLoading(false);
+            return;
+          }
+          fetchProfile(data.user);
         }
       });
 
       // Listen for changes on auth state (logged in, signed out, etc.)
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
           fetchProfile(session.user);
         } else {
           setUser(null);
-          setLoading(false);
+          // Staff/Admin-Logout darf Kunden nicht ohne Identität zurücklassen.
+          const { data, error } = await supabase.auth.signInAnonymously();
+          if (!error) fetchProfile(data.user);
+          else setLoading(false);
         }
       });
 
@@ -36,12 +47,17 @@ export function AuthProvider({ children }) {
 
   const fetchProfile = async (authUser) => {
     try {
+      if (authUser.is_anonymous) {
+        setUser({ id: authUser.id, email: null, role: 'customer' });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', authUser.id)
         .single();
-        
+
       if (error && error.code !== 'PGRST116') {
         console.error("Error fetching profile", error);
       }

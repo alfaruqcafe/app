@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useMenu } from '../contexts/MenuContext';
-import { LogOut, Plus, Trash2, Edit2, X, Save, Bell, Calendar, BookOpen } from 'lucide-react';
+import { LogOut, Plus, Trash2, Edit2, X, Save, Bell, Calendar, BookOpen, Ban, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export function AdminDashboard() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
-  const { categories, updateItem, addCategory, deleteCategory, addItem, deleteItem } = useMenu();
+  const { categories, updateItem, addCategory, deleteCategory, addItem, deleteItem, toggleAvailability } = useMenu();
   
   const [activeTab, setActiveTab] = useState('menu'); // 'menu' or 'events'
   
@@ -244,7 +244,7 @@ export function AdminDashboard() {
 
                   <div className="flex flex-col gap-2">
                     {category.items.map(item => (
-                      <div key={item.id} className="flex justify-between items-center p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-colors">
+                      <div key={item.id} className={`flex justify-between items-center p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-colors ${!item.available ? 'opacity-60' : ''}`}>
                         <div className="flex items-center gap-3">
                           {item.imageUrl ? (
                             <img src={item.imageUrl} alt={item.name} className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
@@ -257,13 +257,20 @@ export function AdminDashboard() {
                           </div>
                         </div>
                         <div className="flex gap-2 shrink-0">
-                          <button 
+                          <button
+                            onClick={() => toggleAvailability(item.id, item.available)}
+                            className={`w-8 h-8 rounded-lg border-none flex items-center justify-center cursor-pointer ${item.available ? 'bg-green-50 text-green-600 hover:bg-green-100' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
+                            title={item.available ? 'Als ausverkauft markieren' : 'Als verfügbar markieren'}
+                          >
+                            {item.available ? <CheckCircle2 size={14} /> : <Ban size={14} />}
+                          </button>
+                          <button
                             onClick={() => openEditModal(category, item)}
                             className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 border-none flex items-center justify-center cursor-pointer hover:bg-gray-200"
                           >
                             <Edit2 size={14} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDeleteItemClick(item.id)}
                             className="w-8 h-8 rounded-lg bg-red-50 text-red-600 border-none flex items-center justify-center cursor-pointer hover:bg-red-100"
                           >
