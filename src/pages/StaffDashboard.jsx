@@ -31,8 +31,8 @@ export function StaffDashboard() {
 
   const filteredOrders = orders
     .filter(o => {
-      if (filter === 'active') return o.status !== 'delivered' && o.status !== 'cancelled' && o.status !== 'ready';
-      if (filter === 'ready') return o.status === 'ready';
+      if (filter === 'active') return o.status === 'pending' || o.status === 'accepted';
+      if (filter === 'ready') return o.status === 'ready' || o.status === 'delivering';
       return true;
     })
     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); // Oldest first
@@ -122,7 +122,7 @@ export function StaffDashboard() {
               filter === 'active' ? "bg-white shadow-sm text-primary" : "text-gray-500"
             )}
           >
-            Aktive ({orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled' && o.status !== 'ready').length})
+            Aktive ({orders.filter(o => o.status === 'pending' || o.status === 'accepted').length})
           </button>
           <button 
             onClick={() => setFilter('ready')}
@@ -131,7 +131,7 @@ export function StaffDashboard() {
               filter === 'ready' ? "bg-white shadow-sm text-primary" : "text-gray-500"
             )}
           >
-            Abholbereit ({orders.filter(o => o.status === 'ready').length})
+            Abholbereit ({orders.filter(o => o.status === 'ready' || o.status === 'delivering').length})
           </button>
           <button 
             onClick={() => setFilter('all')}
