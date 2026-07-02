@@ -38,7 +38,7 @@ export function CartDrawer({ open, onClose }) {
 
   async function handleSubmit() {
     if (!tableNumber) {
-      setError("Bitte Tischnummer eingeben.");
+      setError("Bitte Tischnummer auswählen.");
       return;
     }
     setLoading(true);
@@ -154,14 +154,19 @@ export function CartDrawer({ open, onClose }) {
           {step === "checkout" && (
             <div className="flex flex-col gap-4">
               <div>
-                <label className="text-[13px] font-bold block mb-1.5 text-gray-700">Bereich & Tischnummer *</label>
-                <input 
-                  type="text"
+                <label className="text-[13px] font-bold block mb-1.5 text-gray-700">Tischnummer *</label>
+                <select 
                   value={tableNumber}
                   onChange={e => setTableNumber(e.target.value)}
-                  placeholder="z.B. Terrasse, Tisch 4"
-                  className="w-full p-3 rounded-xl border border-[#e5d9c8] text-sm box-border outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                />
+                  className="w-full p-3 rounded-xl border border-[#e5d9c8] text-sm box-border outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white transition-all"
+                >
+                  <option value="">Tisch auswählen...</option>
+                  {Array.from({ length: 20 }, (_, i) => i + 1).map(num => (
+                    <option key={num} value={num}>
+                      Tisch {num}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="text-[13px] font-bold block mb-1.5 text-gray-700">Name (optional)</label>
