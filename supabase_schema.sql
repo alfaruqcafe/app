@@ -38,7 +38,8 @@ CREATE TABLE order_items (
   order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
   menu_item_id INTEGER REFERENCES menu_items(id) ON DELETE SET NULL,
   quantity INTEGER NOT NULL,
-  unit_price DECIMAL(10, 2) NOT NULL
+  unit_price DECIMAL(10, 2) NOT NULL,
+  is_paid BOOLEAN DEFAULT false
 );
 
 -- 5. Events
@@ -132,6 +133,12 @@ CREATE POLICY "Read order_items of own or staff/admin/cashier orders" ON order_i
       o.customer_id = auth.uid()
       OR EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('staff', 'admin', 'cashier'))
     )
+  )
+);
+CREATE POLICY "Staff/Admin/Cashier update order_items" ON order_items FOR UPDATE USING (
+  EXISTS (
+    SELECT 1 FROM orders o WHERE o.id = order_items.order_id
+    AND EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('staff', 'admin', 'cashier'))
   )
 );
 

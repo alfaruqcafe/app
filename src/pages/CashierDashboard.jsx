@@ -2,13 +2,13 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders } from '../contexts/OrdersContext';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Receipt, Search, CheckCircle2, XCircle, Clock, ChefHat, Check, User } from 'lucide-react';
+import { LogOut, Receipt, Search, CheckCircle2, XCircle, Clock, ChefHat, Check, User, X } from 'lucide-react';
 import clsx from 'clsx';
 
 export function CashierDashboard() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
-  const { orders, updateOrderPaymentStatus } = useOrders();
+  const { orders, updateOrderPaymentStatus, updateOrderItemPaymentStatus } = useOrders();
   const [filter, setFilter] = useState('unpaid'); // 'unpaid', 'paid', 'all'
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -197,11 +197,32 @@ export function CashierDashboard() {
                   {/* Order Items */}
                   <div className="flex flex-col gap-2">
                     {order.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between text-sm">
-                        <span className="text-[#3d1f0f]">
+                      <div key={idx} className="flex justify-between items-center text-sm py-1 border-b border-gray-50/50 last:border-none">
+                        <span className="text-[#3d1f0f] flex items-center gap-1">
                           <span className="text-gray-400 font-bold mr-1">{item.quantity}x</span> {item.menuItemName}
                         </span>
-                        <span className="text-gray-500 text-xs">{(item.price * item.quantity).toFixed(2)} €</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500 text-xs">{(item.price * item.quantity).toFixed(2)} €</span>
+                          {item.isPaid ? (
+                            <div className="flex items-center gap-1 bg-green-50 text-green-700 font-medium text-[11px] px-2 py-0.5 rounded-full border border-green-150">
+                              <span>Bezahlt</span>
+                              <button 
+                                onClick={() => updateOrderItemPaymentStatus(order.id, item.id, false)}
+                                className="border-none bg-transparent text-green-700 hover:text-red-500 cursor-pointer flex items-center p-0 ml-1 transition-colors"
+                                title="Als unbezahlt markieren"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => updateOrderItemPaymentStatus(order.id, item.id, true)}
+                              className="border-none bg-gray-100 hover:bg-primary/10 text-gray-600 hover:text-primary font-bold text-[11px] px-2 py-0.5 rounded-full cursor-pointer transition-all flex items-center gap-0.5"
+                            >
+                              <Check size={12} /> Kassieren
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
 

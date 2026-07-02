@@ -22,9 +22,11 @@ export function OrdersProvider({ children }) {
         .select(`
           *,
           items:order_items (
+            id,
             menu_item_id,
             quantity,
             unit_price,
+            is_paid,
             menu_items ( name )
           )
         `);
@@ -50,10 +52,12 @@ export function OrdersProvider({ children }) {
           isPaid: o.is_paid || false,
           createdAt: o.created_at,
           items: o.items.map(i => ({
+            id: i.id,
             menuItemId: i.menu_item_id,
             menuItemName: i.menu_items?.name || 'Unbekannter Artikel',
             quantity: i.quantity,
-            price: Number(i.unit_price)
+            price: Number(i.unit_price),
+            isPaid: i.is_paid || false
           }))
         }));
         setOrders(fullOrders);
@@ -181,19 +185,84 @@ export function OrdersProvider({ children }) {
 
     try {
       // Optimistic UI update
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, isPaid } : o));
+      setOrders(prev => prev.map(o => {
+        if (o.id !== orderId) return o;
+        return {
+          ...o,
+          isPaid,
+          items: o.items.map(item => ({ ...item, isPaid }))
+        };
+      }));
 
-      const { error } = await supabase
+      // 1. Update the order table
+      const { error: orderError } = await supabase
         .from('orders')
         .update({ is_paid: isPaid })
         .eq('id', orderId);
 
-      if (error) {
-        fetchOrders();
-        throw error;
-      }
+      if (orderError) throw orderError;
+
+      // 2. Update all sibling order items
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .update({ is_paid: isPaid })
+        .eq('order_id', orderId);
+
+      if (itemsError) throw itemsError;
+
     } catch (err) {
       console.error("Failed to update order payment status:", err);
+      fetchOrders();
+    }
+  };
+
+  const updateOrderItemPaymentStatus = async (orderId, itemId, isPaid) => {
+    if (!supabase) return;
+
+    try {
+      // Optimistic UI update
+      setOrders(prev => prev.map(o => {
+        if (o.id !== orderId) return o;
+        const updatedItems = o.items.map(item => 
+          item.id === itemId ? { ...item, isPaid } : item
+        );
+        const allPaid = updatedItems.every(item => item.isPaid);
+        return {
+          ...o,
+          items: updatedItems,
+          isPaid: allPaid
+        };
+      }));
+
+      // 1. Update this specific order item in database
+      const { error: itemError } = await supabase
+        .from('order_items')
+        .update({ is_paid: isPaid })
+        .eq('id', itemId);
+
+      if (itemError) throw itemError;
+
+      // 2. Fetch status of all order items for this order to compute correct parent order payment status
+      const { data: siblingItems, error: queryError } = await supabase
+        .from('order_items')
+        .select('is_paid')
+        .eq('order_id', orderId);
+
+      if (queryError) throw queryError;
+
+      const allPaid = siblingItems.every(item => item.is_paid);
+
+      // 3. Update the main order row
+      const { error: orderError } = await supabase
+        .from('orders')
+        .update({ is_paid: allPaid })
+        .eq('id', orderId);
+
+      if (orderError) throw orderError;
+
+    } catch (err) {
+      console.error("Failed to update order item payment status:", err);
+      fetchOrders();
     }
   };
 
@@ -202,7 +271,7 @@ export function OrdersProvider({ children }) {
   const activeOrders = useMemo(() => orders.filter(o => isActiveStatus(o.status)), [orders]);
 
   return (
-    <OrdersContext.Provider value={{ orders, activeOrders, addOrder, updateOrderStatus, updateOrderPaymentStatus, getOrder, loading }}>
+    <OrdersContext.Provider value={{ orders, activeOrders, addOrder, updateOrderStatus, updateOrderPaymentStatus, updateOrderItemPaymentStatus, getOrder, loading }}>
       {children}
     </OrdersContext.Provider>
   );
