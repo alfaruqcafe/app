@@ -24,6 +24,7 @@ CREATE TABLE orders (
   id SERIAL PRIMARY KEY,
   table_number INTEGER NOT NULL,
   customer_name VARCHAR(255),
+  customer_id UUID REFERENCES auth.users(id),
   note TEXT,
   status VARCHAR(50) DEFAULT 'pending', -- pending, preparing, ready, delivered, cancelled
   total_price DECIMAL(10, 2) NOT NULL,
@@ -115,11 +116,23 @@ CREATE POLICY "Public read categories" ON categories FOR SELECT USING (true);
 CREATE POLICY "Public read menu_items" ON menu_items FOR SELECT USING (true);
 CREATE POLICY "Public read events" ON events FOR SELECT USING (true);
 
--- Allow public insert for orders, order_items, event_registrations, bookings
-CREATE POLICY "Public insert orders" ON orders FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public read orders" ON orders FOR SELECT USING (true); -- Optional: restrict by ID later
+-- Scoped policies for orders: Customers see own, Staff/Admin see all
+CREATE POLICY "Customers read own orders" ON orders FOR SELECT USING (customer_id = auth.uid());
+CREATE POLICY "Staff read all orders" ON orders FOR SELECT USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('staff', 'admin')));
+CREATE POLICY "Insert own orders" ON orders FOR INSERT WITH CHECK (customer_id = auth.uid());
+
+-- Scoped policies for order_items
 CREATE POLICY "Public insert order_items" ON order_items FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public read order_items" ON order_items FOR SELECT USING (true);
+CREATE POLICY "Read order_items of own or staff orders" ON order_items FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM orders o WHERE o.id = order_items.order_id
+    AND (
+      o.customer_id = auth.uid()
+      OR EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('staff', 'admin'))
+    )
+  )
+);
+
 CREATE POLICY "Public insert event_registrations" ON event_registrations FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public insert bookings" ON bookings FOR INSERT WITH CHECK (true);
 

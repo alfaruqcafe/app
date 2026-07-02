@@ -1,53 +1,23 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { isActiveStatus } from '../lib/orderStatus';
+import { useAuth } from './AuthContext';
 
 const OrdersContext = createContext(null);
 
 export function OrdersProvider({ children }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   // Fetch initial orders
   const fetchOrders = useCallback(async () => {
-    if (!supabase) return;
+    if (!supabase || !user) {
+      setLoading(false);
+      return;
+    }
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          items:order_items (
-            menu_item_id,
-            quantity,
-            unit_price
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Map to frontend format
-      const formattedOrders = data.map(o => ({
-        id: o.id,
-        tableNumber: o.table_number,
-        customerName: o.customer_name,
-        note: o.note,
-        status: o.status,
-        totalPrice: Number(o.total_price),
-        createdAt: o.created_at,
-        items: o.items.map(i => ({
-          menuItemId: i.menu_item_id,
-          quantity: i.quantity,
-          price: Number(i.unit_price),
-          // We don't have the item name directly here without a join, 
-          // but we can join menu_items or fetch it if needed.
-          // For simplicity in the prototype, we assume we fetch it via a separate query or join it.
-          // In a real app we'd do a join: `items:order_items(*, menu_items(name))`
-        }))
-      }));
-
-      // Let's do a better fetch with joined menu item names
-      const { data: joinedData, error: joinError } = await supabase
+      let query = supabase
         .from('orders')
         .select(`
           *,
@@ -57,11 +27,19 @@ export function OrdersProvider({ children }) {
             unit_price,
             menu_items ( name )
           )
-        `)
-        .order('created_at', { ascending: false });
+        `);
 
-      if (!joinError && joinedData) {
-        const fullOrders = joinedData.map(o => ({
+      // Filter by customer_id if the user is a standard customer
+      if (user.role !== 'staff' && user.role !== 'admin') {
+        query = query.eq('customer_id', user.id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data) {
+        const fullOrders = data.map(o => ({
           id: o.id,
           tableNumber: o.table_number,
           customerName: o.customer_name,
@@ -84,7 +62,7 @@ export function OrdersProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchOrders();
