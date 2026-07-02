@@ -1,12 +1,18 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { ArrowLeft, Receipt, ChevronRight } from 'lucide-react';
 import { useOrders } from '../contexts/OrdersContext';
 import { STATUS_LABELS, STATUS_COLORS } from '../lib/orderStatus';
+import { useAuth } from '../contexts/AuthContext';
 
 export function OrderHistory() {
   const navigate = useNavigate();
   const { orders } = useOrders();
+  const { user } = useAuth();
+
+  if (user?.role === 'cashier') {
+    return <Navigate to="/cashier" replace />;
+  }
 
   const sortedOrders = useMemo(
     () => [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),

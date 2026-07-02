@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { Coffee, Receipt, Sparkles, ChevronRight, Bell, Clock } from 'lucide-react';
 import { useOrders } from '../contexts/OrdersContext';
 import { STATUS_LABELS } from '../lib/orderStatus';
@@ -9,6 +9,11 @@ export function Home() {
   const navigate = useNavigate();
   const { activeOrders } = useOrders();
   const { user } = useAuth();
+
+  if (user?.role === 'cashier') {
+    return <Navigate to="/cashier" replace />;
+  }
+
   const [hasNotificationPermission, setHasNotificationPermission] = useState(() => {
     return typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted';
   });

@@ -1,6 +1,14 @@
 import { Clock } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export function Booking() {
+  const { user } = useAuth();
+  
+  if (user?.role === 'cashier') {
+    return <Navigate to="/cashier" replace />;
+  }
+
   return (
     <div className="min-h-screen bg-[#fdfbf7] flex flex-col items-center justify-center p-6 text-center">
       <div className="w-20 h-20 rounded-3xl bg-grad text-white flex items-center justify-center shadow-2xl shadow-primary/30 mb-6">

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useMenu } from '../contexts/MenuContext';
@@ -11,6 +11,11 @@ import clsx from 'clsx';
 export function Menu() {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  if (user?.role === 'cashier') {
+    return <Navigate to="/cashier" replace />;
+  }
+
   const { categories } = useMenu();
   const { addItem, count, lastOrderId } = useCart();
   

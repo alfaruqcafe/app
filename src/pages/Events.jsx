@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { EVENT_TYPE_STYLES } from '../lib/mockData';
 import { useToast } from '../contexts/ToastContext';
 import { format } from 'date-fns';
@@ -7,10 +7,16 @@ import { de } from 'date-fns/locale';
 import { Calendar, MapPin, Users, ArrowLeft, Send } from 'lucide-react';
 import clsx from 'clsx';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 export function Events() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { user } = useAuth();
+
+  if (user?.role === 'cashier') {
+    return <Navigate to="/cashier" replace />;
+  }
   const { showToast } = useToast();
   const [activeEventId, setActiveEventId] = useState(id ? Number(id) : null);
   const [registration, setRegistration] = useState({ name: '', email: '' });
