@@ -2,14 +2,16 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useOrders } from '../contexts/OrdersContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { X, CheckCircle2, ShoppingBag, Plus, Minus, Trash2, ClipboardList, ArrowRight, ArrowLeft, Check, Bell } from 'lucide-react';
 import clsx from 'clsx';
 
 export function CartDrawer({ open, onClose }) {
   const navigate = useNavigate();
-  const { items, count, total, lastOrderId, updateQuantity, removeItem, clearCart, setLastOrderId } = useCart();
+  const { items, count, total, lastOrderId, updateQuantity, removeItem, clearCart, addActiveOrderId } = useCart();
   const { addOrder } = useOrders();
+  const { user } = useAuth();
   const { showToast } = useToast();
   
   const [step, setStep] = useState("cart");
@@ -38,12 +40,13 @@ export function CartDrawer({ open, onClose }) {
       const orderId = await addOrder({
         tableNumber: tableNumber.trim(),
         customerName: customerName || null,
+        customerId: user?.id || null,
         note: note || null,
         totalPrice: total,
         items: items.map(i => ({ menuItemId: i.menuItemId, price: i.price, quantity: i.quantity }))
       });
-      
-      setLastOrderId(orderId);
+
+      addActiveOrderId(orderId);
       clearCart();
       setTableNumber("");
       setCustomerName("");

@@ -120,6 +120,21 @@ export function MenuProvider({ children }) {
     }
   }, []);
 
+  const toggleAvailability = useCallback(async (itemId, currentAvailable) => {
+    if (!supabase) return;
+    try {
+      const { error } = await supabase
+        .from('menu_items')
+        .update({ available: !currentAvailable })
+        .eq('id', itemId);
+      if (error) throw error;
+      // Realtime-Subscription oben triggert automatisch fetchMenu() bei allen Clients
+    } catch (err) {
+      console.error('Error toggling availability:', err);
+      alert('Fehler beim Umschalten: ' + err.message);
+    }
+  }, []);
+
   const addCategory = useCallback(async (name) => {
     if (!supabase) return;
     try {
@@ -186,8 +201,8 @@ export function MenuProvider({ children }) {
   }, [fetchMenu]);
 
   return (
-    <MenuContext.Provider value={{ 
-      categories, updateItem, addCategory, deleteCategory, addItem, deleteItem, loading, refreshMenu: fetchMenu 
+    <MenuContext.Provider value={{
+      categories, updateItem, addCategory, deleteCategory, addItem, deleteItem, toggleAvailability, loading, refreshMenu: fetchMenu
     }}>
       {children}
     </MenuContext.Provider>

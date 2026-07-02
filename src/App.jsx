@@ -3,6 +3,7 @@ import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
 import { Menu } from './pages/Menu';
 import { OrderStatus } from './pages/OrderStatus';
+import { OrderHistory } from './pages/OrderHistory';
 import { Events } from './pages/Events';
 import { Booking } from './pages/Booking';
 import { Login } from './pages/Login';
@@ -30,6 +31,7 @@ function App() {
                   <Route path="events/:id" element={<Events />} />
                   <Route path="booking" element={<Booking />} />
                   <Route path="order/:id" element={<OrderStatus />} />
+                  <Route path="history" element={<OrderHistory />} />
                   <Route path="login" element={<Login />} />
                   
                   {/* Protected Routes (we can add wrappers later) */}

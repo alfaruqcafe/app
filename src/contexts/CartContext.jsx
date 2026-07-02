@@ -6,8 +6,8 @@ export function CartProvider({ children }) {
   const [items, setItems] = useState(() => {
     try { return JSON.parse(localStorage.getItem("cafe_cart") || "[]"); } catch { return []; }
   });
-  const [lastOrderId, setLastOrderIdState] = useState(() => {
-    try { const v = localStorage.getItem("cafe_last_order"); return v ? Number(v) : null; } catch { return null; }
+  const [activeOrderIds, setActiveOrderIds] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("cafe_active_orders") || "[]"); } catch { return []; }
   });
 
   useEffect(() => { localStorage.setItem("cafe_cart", JSON.stringify(items)); }, [items]);
@@ -29,16 +29,20 @@ export function CartProvider({ children }) {
 
   const clearCart = useCallback(() => setItems([]), []);
 
-  const setLastOrderId = useCallback((id) => {
-    setLastOrderIdState(id);
-    localStorage.setItem("cafe_last_order", String(id));
+  const addActiveOrderId = useCallback((id) => {
+    setActiveOrderIds(prev => {
+      const next = prev.includes(id) ? prev : [...prev, id];
+      localStorage.setItem("cafe_active_orders", JSON.stringify(next));
+      return next;
+    });
   }, []);
 
   const count = useMemo(() => items.reduce((s, i) => s + i.quantity, 0), [items]);
   const total = useMemo(() => items.reduce((s, i) => s + i.price * i.quantity, 0), [items]);
+  const lastOrderId = activeOrderIds.length ? activeOrderIds[activeOrderIds.length - 1] : null;
 
   return (
-    <CartContext.Provider value={{ items, count, total, lastOrderId, addItem, removeItem, updateQuantity, clearCart, setLastOrderId }}>
+    <CartContext.Provider value={{ items, count, total, activeOrderIds, lastOrderId, addItem, removeItem, updateQuantity, clearCart, addActiveOrderId }}>
       {children}
     </CartContext.Provider>
   );

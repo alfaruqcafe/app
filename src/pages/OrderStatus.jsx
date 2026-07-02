@@ -3,6 +3,7 @@ import { useOrders } from '../contexts/OrdersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Clock, ChefHat, CheckCircle2, PartyPopper } from 'lucide-react';
 import clsx from 'clsx';
+import { ORDER_STATUS_STEPS, STATUS_LABELS } from '../lib/orderStatus';
 
 export function OrderStatus() {
   const { id } = useParams();
@@ -11,14 +12,8 @@ export function OrderStatus() {
   const { user } = useAuth();
   const order = getOrder(id);
 
-  const steps = ["pending", "preparing", "ready", "delivered"];
-  const STATUS_LABELS = { 
-    pending: "Wartet auf Bestätigung", 
-    preparing: "Wird zubereitet", 
-    ready: "Abholbereit", 
-    delivered: "Ausgeliefert" 
-  };
-  const STATUS_ICONS = { 
+  const steps = ORDER_STATUS_STEPS;
+  const STATUS_ICONS = {
     pending: Clock, 
     preparing: ChefHat, 
     ready: CheckCircle2, 

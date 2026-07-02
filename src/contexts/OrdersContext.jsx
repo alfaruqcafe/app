@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
+import { isActiveStatus } from '../lib/orderStatus';
 
 const OrdersContext = createContext(null);
 
@@ -64,6 +65,7 @@ export function OrdersProvider({ children }) {
           id: o.id,
           tableNumber: o.table_number,
           customerName: o.customer_name,
+          customerId: o.customer_id,
           note: o.note,
           status: o.status,
           totalPrice: Number(o.total_price),
@@ -112,6 +114,7 @@ export function OrdersProvider({ children }) {
         .insert({
           table_number: orderData.tableNumber,
           customer_name: orderData.customerName || null,
+          customer_id: orderData.customerId || null,
           note: orderData.note || null,
           total_price: orderData.totalPrice,
           status: 'pending'
@@ -194,8 +197,10 @@ export function OrdersProvider({ children }) {
 
   const getOrder = (id) => orders.find(o => o.id === Number(id));
 
+  const activeOrders = useMemo(() => orders.filter(o => isActiveStatus(o.status)), [orders]);
+
   return (
-    <OrdersContext.Provider value={{ orders, addOrder, updateOrderStatus, getOrder, loading }}>
+    <OrdersContext.Provider value={{ orders, activeOrders, addOrder, updateOrderStatus, getOrder, loading }}>
       {children}
     </OrdersContext.Provider>
   );

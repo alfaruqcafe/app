@@ -1,54 +1,15 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Coffee, Calendar, Building, ChevronRight, Bell, Clock } from 'lucide-react';
-import { EVENT_TYPE_STYLES } from '../lib/mockData';
-import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
-import { supabase } from '../lib/supabase';
-import { useCart } from '../contexts/CartContext';
+import { Coffee, Receipt, Sparkles, ChevronRight, Bell, Clock } from 'lucide-react';
+import { useOrders } from '../contexts/OrdersContext';
+import { STATUS_LABELS } from '../lib/orderStatus';
 
 export function Home() {
   const navigate = useNavigate();
-  const { lastOrderId } = useCart();
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
-
-  useEffect(() => {
-    async function fetchEvents() {
-      if (!supabase) return;
-      try {
-        const { data, error } = await supabase
-          .from('events')
-          .select('*')
-          .order('start_date', { ascending: true })
-          .limit(3);
-        
-        if (error) throw error;
-        
-        const mappedEvents = data.map(e => ({
-          id: e.id,
-          title: e.title,
-          type: e.type,
-          startDate: e.start_date,
-          endDate: e.end_date,
-          location: e.location,
-          description: e.description,
-          maxParticipants: e.max_participants,
-          currentParticipants: e.current_participants || 0,
-          registrationRequired: e.registration_required
-        }));
-        
-        setUpcomingEvents(mappedEvents);
-      } catch (err) {
-        console.error("Fehler beim Laden der Events", err);
-      }
-    }
-    fetchEvents();
-  }, []);
+  const { activeOrders } = useOrders();
 
   const quickActions = [
     { path: "/menu", icon: Coffee, label: "Speisekarte", desc: "Unsere Angebote" },
-    { path: "/events", icon: Calendar, label: "Veranstaltungen", desc: "Events & Öffnungszeiten" },
-    { path: "/booking", icon: Building, label: "Raum buchen", desc: "Seminar, Event & mehr" },
+    { path: "/history", icon: Receipt, label: "Bestellhistorie", desc: "Deine Bestellungen" },
   ];
 
   return (
@@ -64,24 +25,27 @@ export function Home() {
         </p>
       </div>
 
-      {/* Active Order Banner */}
-      {lastOrderId && (
-        <div className="px-4 -mt-4 mb-4 relative z-10">
-          <button 
-            onClick={() => navigate(`/order/${lastOrderId}`)}
-            className="w-full bg-white border-2 border-primary/20 rounded-2xl p-4 flex justify-between items-center cursor-pointer shadow-lg shadow-primary/5 transition-transform active:scale-[0.98]"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                <Clock size={20} />
+      {/* Active Order Banners */}
+      {activeOrders.length > 0 && (
+        <div className="px-4 -mt-4 mb-4 relative z-10 flex flex-col gap-2">
+          {activeOrders.map(order => (
+            <button
+              key={order.id}
+              onClick={() => navigate(`/order/${order.id}`)}
+              className="w-full bg-white border-2 border-primary/20 rounded-2xl p-4 flex justify-between items-center cursor-pointer shadow-lg shadow-primary/5 transition-transform active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <Clock size={20} />
+                </div>
+                <div className="text-left">
+                  <p className="font-bold text-[13px] text-primary m-0">Bestellung #{String(order.id).slice(-4)}</p>
+                  <p className="text-[11px] text-gray-500 m-0 mt-0.5">{STATUS_LABELS[order.status] || order.status}</p>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="font-bold text-[13px] text-primary m-0">Deine letzte Bestellung</p>
-                <p className="text-[11px] text-gray-500 m-0 mt-0.5">Status ansehen #{String(lastOrderId).slice(-4)}</p>
-              </div>
-            </div>
-            <ChevronRight size={18} className="text-primary/50" />
-          </button>
+              <ChevronRight size={18} className="text-primary/50" />
+            </button>
+          ))}
         </div>
       )}
 
@@ -91,7 +55,7 @@ export function Home() {
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
-              <button 
+              <button
                 key={action.path}
                 onClick={() => navigate(action.path)}
                 className="bg-white border border-[#e5d9c8] rounded-2xl p-4 cursor-pointer text-left flex flex-col gap-2 shadow-sm transition-transform active:scale-95"
@@ -106,60 +70,21 @@ export function Home() {
               </button>
             );
           })}
-        </div>
-      </div>
-
-      {/* Upcoming Events */}
-      <div className="px-4 py-5 bg-[#fdfbf7]">
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="font-serif text-[18px] font-bold m-0">Nächste Veranstaltungen</h2>
-          <button 
-            onClick={() => navigate('/events')}
-            className="border-none bg-transparent text-primary font-bold text-[12px] cursor-pointer flex items-center gap-1"
-          >
-            Alle <ChevronRight size={14} />
-          </button>
-        </div>
-        <div className="flex flex-col gap-2.5">
-          {upcomingEvents.map(event => {
-            const style = EVENT_TYPE_STYLES[event.type] || EVENT_TYPE_STYLES.other;
-            const date = new Date(event.startDate);
-            
-            return (
-              <button 
-                key={event.id}
-                onClick={() => navigate(`/events/${event.id}`)}
-                className="flex gap-3 items-center bg-white border border-[#e5d9c8] rounded-2xl p-3 cursor-pointer text-left w-full shadow-sm transition-transform active:scale-95"
-              >
-                <div className="w-14 h-14 rounded-xl bg-primary/5 flex flex-col items-center justify-center shrink-0">
-                  <span className="text-[10px] font-bold uppercase text-primary">
-                    {format(date, 'MMM', { locale: de })}
-                  </span>
-                  <span className="text-[20px] font-bold text-primary leading-none">
-                    {format(date, 'dd')}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-[13px] m-0 mb-0.5 truncate">{event.title}</p>
-                  <p className="text-[11px] text-gray-400 m-0 mb-1">
-                    {format(date, 'HH:mm')} Uhr
-                  </p>
-                  <span 
-                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: style.bg, color: style.color }}
-                  >
-                    {style.label}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
+          <div className="bg-white border border-[#e5d9c8] rounded-2xl p-4 text-left flex flex-col gap-2 shadow-sm opacity-40 cursor-not-allowed col-span-2">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+              <Sparkles size={20} />
+            </div>
+            <div>
+              <p className="font-bold text-[13px] text-[#3d1f0f] m-0">Bald verfügbar</p>
+              <p className="text-[11px] text-gray-400 mt-0.5 m-0">Weitere Funktionen folgen</p>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Push Notification Banner */}
       <div className="px-4 pb-4">
-        <button 
+        <button
           onClick={async () => {
             try {
               const { subscribeToPushNotifications } = await import('../lib/push');
@@ -180,14 +105,14 @@ export function Home() {
           </div>
           <div className="text-left">
             <p className="font-bold text-[13px] m-0">Benachrichtigungen aktivieren</p>
-            <p className="text-[11px] text-white/70 m-0 mt-0.5">Erhalte Updates zu Events & Speisekarte</p>
+            <p className="text-[11px] text-white/70 m-0 mt-0.5">Erhalte Updates zur Speisekarte</p>
           </div>
         </button>
       </div>
 
       {/* Staff Link */}
       <div className="text-center py-2 pb-6">
-        <button 
+        <button
           onClick={() => navigate('/login')}
           className="border-none bg-transparent text-[11px] text-gray-400/60 cursor-pointer hover:text-primary transition-colors"
         >
