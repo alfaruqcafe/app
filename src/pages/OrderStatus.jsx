@@ -20,7 +20,7 @@ export function OrderStatus() {
     delivered: PartyPopper 
   };
 
-  const backPath = user?.role === 'admin' ? '/admin' : user?.role === 'staff' ? '/staff' : '/menu';
+  const backPath = user?.role === 'admin' ? '/admin' : user?.role === 'cashier' ? '/cashier' : user?.role === 'staff' ? '/staff' : '/menu';
 
   if (!order) {
     return (

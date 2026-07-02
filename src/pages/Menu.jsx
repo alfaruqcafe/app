@@ -20,6 +20,13 @@ export function Menu() {
   const [cartOpen, setCartOpen] = useState(false);
   const [flashingIds, setFlashingIds] = useState(new Set());
 
+  const handleBack = () => {
+    if (user?.role === 'admin') navigate('/admin');
+    else if (user?.role === 'cashier') navigate('/cashier');
+    else if (user?.role === 'staff') navigate('/staff');
+    else navigate('/');
+  };
+
   function flash(id) {
     setFlashingIds(prev => new Set([...prev, id]));
     setTimeout(() => {
@@ -45,7 +52,7 @@ export function Menu() {
       <div className="pt-12 px-5 pb-6 bg-grad rounded-b-[2.5rem] shadow-sm mb-6">
         {canOrder && (
           <button 
-            onClick={() => navigate('/')}
+            onClick={handleBack}
             className="mb-4 flex items-center gap-1.5 bg-white/10 text-white border-none w-max px-3 py-1.5 rounded-full cursor-pointer hover:bg-white/20 transition-colors text-[13px] font-bold"
           >
             ← Zurück zur Übersicht

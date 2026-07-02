@@ -25,9 +25,15 @@ export function CartDrawer({ open, onClose }) {
   });
 
   function handleClose() {
+    const isDone = step === "done";
     setStep("cart");
     setError(null);
     onClose();
+    if (isDone && user && (user.role === 'staff' || user.role === 'admin' || user.role === 'cashier')) {
+      if (user.role === 'admin') navigate('/admin');
+      else if (user.role === 'cashier') navigate('/cashier');
+      else navigate('/staff');
+    }
   }
 
   async function handleSubmit() {
@@ -220,7 +226,7 @@ export function CartDrawer({ open, onClose }) {
                     onClick={async () => {
                       try {
                         const { subscribeToPushNotifications } = await import('../lib/push');
-                        await subscribeToPushNotifications(null, 'customer');
+                        await subscribeToPushNotifications(user?.id, 'customer');
                         showToast("Benachrichtigungen aktiviert!");
                         setHasNotificationPermission(true);
                       } catch (err) {

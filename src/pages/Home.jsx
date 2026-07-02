@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Coffee, Receipt, Sparkles, ChevronRight, Bell, Clock } from 'lucide-react';
 import { useOrders } from '../contexts/OrdersContext';
 import { STATUS_LABELS } from '../lib/orderStatus';
+import { useAuth } from '../contexts/AuthContext';
 
 export function Home() {
   const navigate = useNavigate();
   const { activeOrders } = useOrders();
+  const { user } = useAuth();
   const [hasNotificationPermission, setHasNotificationPermission] = useState(() => {
     return typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted';
   });
@@ -93,7 +95,7 @@ export function Home() {
             onClick={async () => {
               try {
                 const { subscribeToPushNotifications } = await import('../lib/push');
-                await subscribeToPushNotifications(null, 'customer');
+                await subscribeToPushNotifications(user?.id, 'customer');
                 alert("Push-Benachrichtigungen aktiviert! Du wirst über neue Events und Speisekarten-Änderungen informiert.");
                 setHasNotificationPermission(true);
               } catch (e) {

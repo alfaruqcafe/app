@@ -155,17 +155,19 @@ export function OrdersProvider({ children }) {
         throw error;
       }
       
-      // Notify customer (we don't have user_id linked to order right now unless they are logged in, 
-      // but we broadcast to 'customer' role for the demo or if we had targetUserId we'd use it)
-      const statusText = newStatus === 'completed' ? 'Fertig! 🎉' : newStatus === 'preparing' ? 'Wird zubereitet 👩‍🍳' : 'Abgeschlossen';
+      // Notify customer (only the specific customer who placed this order)
+      const statusText = newStatus === 'ready' ? 'Fertig / Abholbereit! 🎉' : newStatus === 'preparing' ? 'Wird zubereitet 👩‍🍳' : newStatus === 'delivered' ? 'Geliefert' : 'Abgeschlossen';
       try {
-        const { sendPushNotification } = await import('../lib/push');
-        await sendPushNotification({
-          title: `Bestellung #${orderId.toString().slice(-4)}`,
-          body: `Status geändert: ${statusText}`,
-          url: `/order/${orderId}`,
-          targetRole: 'customer' // Ideal wäre hier die targetUserId des Kunden
-        });
+        const order = getOrder(orderId);
+        if (order && order.customerId) {
+          const { sendPushNotification } = await import('../lib/push');
+          await sendPushNotification({
+            title: `Bestellung #${orderId.toString().slice(-4)}`,
+            body: `Status geändert: ${statusText}`,
+            url: `/order/${orderId}`,
+            targetUserId: order.customerId
+          });
+        }
       } catch(e) {
         // Ignore push errors so it doesn't break UI
       }
