@@ -9,10 +9,10 @@ export function BottomNav() {
   const { user } = useAuth();
   const location = useLocation();
 
-  const canOrder = user?.role === 'staff' || user?.role === 'admin';
+  const isEmployee = user?.role === 'staff' || user?.role === 'admin' || user?.role === 'cashier';
 
-  // Hide nav for staff/admin entirely, or on specific routes
-  if (canOrder || location.pathname.startsWith('/staff') || location.pathname.startsWith('/admin') || location.pathname === '/login') {
+  // Hide nav for staff/admin/cashier entirely, or on specific routes
+  if (isEmployee || location.pathname.startsWith('/staff') || location.pathname.startsWith('/admin') || location.pathname.startsWith('/cashier') || location.pathname === '/login') {
     return null;
   }
 
