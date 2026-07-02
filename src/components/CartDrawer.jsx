@@ -20,6 +20,9 @@ export function CartDrawer({ open, onClose }) {
   const [note, setNote] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [hasNotificationPermission, setHasNotificationPermission] = useState(() => {
+    return typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted';
+  });
 
   function handleClose() {
     setStep("cart");
@@ -212,20 +215,23 @@ export function CartDrawer({ open, onClose }) {
                   </button>
                 )}
                 
-                <button 
-                  onClick={async () => {
-                    try {
-                      const { subscribeToPushNotifications } = await import('../lib/push');
-                      await subscribeToPushNotifications(null, 'customer');
-                      showToast("Benachrichtigungen aktiviert!");
-                    } catch (err) {
-                      showToast(err.message || "Fehler beim Aktivieren der Benachrichtigungen");
-                    }
-                  }}
-                  className="w-full p-3.5 rounded-xl border-none bg-primary text-white font-bold cursor-pointer hover:bg-primary-light transition-colors flex items-center justify-center gap-2"
-                >
-                  <Bell size={18} /> Bei Updates benachrichtigen
-                </button>
+                {!hasNotificationPermission && (
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const { subscribeToPushNotifications } = await import('../lib/push');
+                        await subscribeToPushNotifications(null, 'customer');
+                        showToast("Benachrichtigungen aktiviert!");
+                        setHasNotificationPermission(true);
+                      } catch (err) {
+                        showToast(err.message || "Fehler beim Aktivieren der Benachrichtigungen");
+                      }
+                    }}
+                    className="w-full p-3.5 rounded-xl border-none bg-primary text-white font-bold cursor-pointer hover:bg-primary-light transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Bell size={18} /> Bei Updates benachrichtigen
+                  </button>
+                )}
                 
                 <button 
                   onClick={handleClose}

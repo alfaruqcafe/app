@@ -10,6 +10,9 @@ export function StaffDashboard() {
   const { logout, user } = useAuth();
   const { orders, updateOrderStatus } = useOrders();
   const [filter, setFilter] = useState('active'); // 'active', 'all'
+  const [hasNotificationPermission, setHasNotificationPermission] = useState(() => {
+    return typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted';
+  });
 
   // Redirect if not logged in
   if (!user || (user.role !== 'staff' && user.role !== 'admin')) {
@@ -68,21 +71,24 @@ export function StaffDashboard() {
           >
             + Bestellung
           </button>
-          <button 
-            onClick={async () => {
-              try {
-                const { subscribeToPushNotifications } = await import('../lib/push');
-                await subscribeToPushNotifications(user.id, user.role);
-                alert("Push-Benachrichtigungen aktiviert!");
-              } catch (e) {
-                alert(e.message || "Fehler");
-              }
-            }}
-            className="border-none bg-white/10 w-10 h-10 rounded-xl flex items-center justify-center text-white cursor-pointer hover:bg-white/20 transition-colors"
-            title="Benachrichtigungen aktivieren"
-          >
-            <Bell size={18} />
-          </button>
+          {!hasNotificationPermission && (
+            <button 
+              onClick={async () => {
+                try {
+                  const { subscribeToPushNotifications } = await import('../lib/push');
+                  await subscribeToPushNotifications(user.id, user.role);
+                  alert("Push-Benachrichtigungen aktiviert!");
+                  setHasNotificationPermission(true);
+                } catch (e) {
+                  alert(e.message || "Fehler");
+                }
+              }}
+              className="border-none bg-white/10 w-10 h-10 rounded-xl flex items-center justify-center text-white cursor-pointer hover:bg-white/20 transition-colors"
+              title="Benachrichtigungen aktivieren"
+            >
+              <Bell size={18} />
+            </button>
+          )}
           <button 
             onClick={handleLogout}
             className="border-none bg-white/10 w-10 h-10 rounded-xl flex items-center justify-center text-white cursor-pointer hover:bg-white/20 transition-colors"

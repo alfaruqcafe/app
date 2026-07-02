@@ -11,6 +11,9 @@ export function AdminDashboard() {
   const { categories, updateItem, addCategory, deleteCategory, addItem, deleteItem, toggleAvailability } = useMenu();
   
   const [activeTab, setActiveTab] = useState('menu'); // 'menu' or 'events'
+  const [hasNotificationPermission, setHasNotificationPermission] = useState(() => {
+    return typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted';
+  });
   
   // Menu State
   const [editingItem, setEditingItem] = useState(null);
@@ -173,21 +176,24 @@ export function AdminDashboard() {
           >
             Push-Test
           </button>
-          <button 
-            onClick={async () => {
-              try {
-                const { subscribeToPushNotifications } = await import('../lib/push');
-                await subscribeToPushNotifications(user.id, user.role);
-                alert("Push-Benachrichtigungen aktiviert!");
-              } catch (e) {
-                alert(e.message || "Fehler");
-              }
-            }}
-            className="bg-white/10 hover:bg-white/20 border-none w-10 h-10 rounded-xl flex items-center justify-center text-white cursor-pointer transition-colors"
-            title="Benachrichtigungen aktivieren"
-          >
-            <Bell size={18} />
-          </button>
+          {!hasNotificationPermission && (
+            <button 
+              onClick={async () => {
+                try {
+                  const { subscribeToPushNotifications } = await import('../lib/push');
+                  await subscribeToPushNotifications(user.id, user.role);
+                  alert("Push-Benachrichtigungen aktiviert!");
+                  setHasNotificationPermission(true);
+                } catch (e) {
+                  alert(e.message || "Fehler");
+                }
+              }}
+              className="bg-white/10 hover:bg-white/20 border-none w-10 h-10 rounded-xl flex items-center justify-center text-white cursor-pointer transition-colors"
+              title="Benachrichtigungen aktivieren"
+            >
+              <Bell size={18} />
+            </button>
+          )}
           <button 
             onClick={handleLogout}
             className="bg-white/10 hover:bg-white/20 border-none w-10 h-10 rounded-xl flex items-center justify-center text-white cursor-pointer transition-colors"
