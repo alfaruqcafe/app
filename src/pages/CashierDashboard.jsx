@@ -8,7 +8,7 @@ import clsx from 'clsx';
 export function CashierDashboard() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
-  const { orders, markOrderAsPaid } = useOrders();
+  const { orders, updateOrderPaymentStatus } = useOrders();
   const [filter, setFilter] = useState('unpaid'); // 'unpaid', 'paid', 'all'
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -220,13 +220,22 @@ export function CashierDashboard() {
                     </div>
 
                     {order.isPaid ? (
-                      <div className="bg-green-100 text-green-700 font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5">
-                        <Check size={16} strokeWidth={2.5} />
-                        Bezahlt
+                      <div className="flex items-center gap-2">
+                        <div className="bg-green-100 text-green-700 font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5">
+                          <Check size={16} strokeWidth={2.5} />
+                          Bezahlt
+                        </div>
+                        <button
+                          onClick={() => updateOrderPaymentStatus(order.id, false)}
+                          className="bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-red-600 font-bold text-xs px-3 py-2.5 rounded-xl border-none cursor-pointer flex items-center gap-1 transition-all active:scale-95"
+                          title="Als unbezahlt markieren"
+                        >
+                          Zurücksetzen
+                        </button>
                       </div>
                     ) : (
                       <button
-                        onClick={() => markOrderAsPaid(order.id)}
+                        onClick={() => updateOrderPaymentStatus(order.id, true)}
                         className="bg-primary hover:bg-primary-light text-white font-bold text-xs px-5 py-2.5 rounded-xl border-none cursor-pointer flex items-center gap-1.5 transition-all shadow-md shadow-primary/10 active:scale-95"
                       >
                         <Receipt size={16} />

@@ -176,16 +176,16 @@ export function OrdersProvider({ children }) {
     }
   };
 
-  const markOrderAsPaid = async (orderId) => {
+  const updateOrderPaymentStatus = async (orderId, isPaid) => {
     if (!supabase) return;
 
     try {
       // Optimistic UI update
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, isPaid: true } : o));
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, isPaid } : o));
 
       const { error } = await supabase
         .from('orders')
-        .update({ is_paid: true })
+        .update({ is_paid: isPaid })
         .eq('id', orderId);
 
       if (error) {
@@ -193,7 +193,7 @@ export function OrdersProvider({ children }) {
         throw error;
       }
     } catch (err) {
-      console.error("Failed to mark order as paid:", err);
+      console.error("Failed to update order payment status:", err);
     }
   };
 
@@ -202,7 +202,7 @@ export function OrdersProvider({ children }) {
   const activeOrders = useMemo(() => orders.filter(o => isActiveStatus(o.status)), [orders]);
 
   return (
-    <OrdersContext.Provider value={{ orders, activeOrders, addOrder, updateOrderStatus, markOrderAsPaid, getOrder, loading }}>
+    <OrdersContext.Provider value={{ orders, activeOrders, addOrder, updateOrderStatus, updateOrderPaymentStatus, getOrder, loading }}>
       {children}
     </OrdersContext.Provider>
   );
