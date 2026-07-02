@@ -29,11 +29,13 @@ export function StaffDashboard() {
     navigate('/');
   }
 
-  const filteredOrders = orders.filter(o => {
-    if (filter === 'active') return o.status !== 'delivered' && o.status !== 'cancelled';
-    if (filter === 'ready') return o.status === 'ready';
-    return true;
-  });
+  const filteredOrders = orders
+    .filter(o => {
+      if (filter === 'active') return o.status !== 'delivered' && o.status !== 'cancelled' && o.status !== 'ready';
+      if (filter === 'ready') return o.status === 'ready';
+      return true;
+    })
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); // Oldest first
 
   const getStatusBadge = (status) => {
     switch(status) {
@@ -120,7 +122,7 @@ export function StaffDashboard() {
               filter === 'active' ? "bg-white shadow-sm text-primary" : "text-gray-500"
             )}
           >
-            Aktive ({orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').length})
+            Aktive ({orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled' && o.status !== 'ready').length})
           </button>
           <button 
             onClick={() => setFilter('ready')}
