@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders } from '../contexts/OrdersContext';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, CheckCircle2, Clock, ChefHat, PartyPopper, Bell, MapPin } from 'lucide-react';
+import { LogOut, CheckCircle2, Clock, ChefHat, PartyPopper, Bell, MapPin, Truck } from 'lucide-react';
 import clsx from 'clsx';
 
 export function StaffDashboard() {
@@ -37,24 +37,27 @@ export function StaffDashboard() {
   const getStatusBadge = (status) => {
     switch(status) {
       case 'pending': return <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><Clock size={12}/> Neu</span>;
-      case 'preparing': return <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><ChefHat size={12}/> Zubereitung</span>;
-      case 'ready': return <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle2 size={12}/> Bereit</span>;
-      case 'delivered': return <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><PartyPopper size={12}/> Erledigt</span>;
+      case 'accepted': return <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><ChefHat size={12}/> Angenommen</span>;
+      case 'ready': return <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><CheckCircle2 size={12}/> Abholbereit</span>;
+      case 'delivering': return <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><Truck size={12}/> Wird geliefert</span>;
+      case 'delivered': return <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-bold flex items-center gap-1"><PartyPopper size={12}/> Zugestellt</span>;
       case 'cancelled': return <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1">Storniert</span>;
       default: return null;
     }
   };
 
   const advanceStatus = (order) => {
-    if (order.status === 'pending') updateOrderStatus(order.id, 'preparing');
-    else if (order.status === 'preparing') updateOrderStatus(order.id, 'ready');
-    else if (order.status === 'ready') updateOrderStatus(order.id, 'delivered');
+    if (order.status === 'pending') updateOrderStatus(order.id, 'accepted');
+    else if (order.status === 'accepted') updateOrderStatus(order.id, 'ready');
+    else if (order.status === 'ready') updateOrderStatus(order.id, 'delivering');
+    else if (order.status === 'delivering') updateOrderStatus(order.id, 'delivered');
   };
 
   const revertStatus = (order) => {
-    if (order.status === 'preparing') updateOrderStatus(order.id, 'pending');
-    else if (order.status === 'ready') updateOrderStatus(order.id, 'preparing');
-    else if (order.status === 'delivered') updateOrderStatus(order.id, 'ready');
+    if (order.status === 'accepted') updateOrderStatus(order.id, 'pending');
+    else if (order.status === 'ready') updateOrderStatus(order.id, 'accepted');
+    else if (order.status === 'delivering') updateOrderStatus(order.id, 'ready');
+    else if (order.status === 'delivered') updateOrderStatus(order.id, 'delivering');
   };
 
   return (
@@ -181,7 +184,10 @@ export function StaffDashboard() {
                       onClick={() => advanceStatus(order)}
                       className="flex-1 py-2.5 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-1 active:scale-95 transition-transform cursor-pointer"
                     >
-                      {order.status === 'pending' ? 'Starten' : order.status === 'preparing' ? 'Fertigstellen' : 'Ausliefern'}
+                      {order.status === 'pending' ? 'Starten' : 
+                       order.status === 'accepted' ? 'Fertigstellen' : 
+                       order.status === 'ready' ? 'Ausliefern' : 
+                       'Zustellen'}
                     </button>
                   )}
                   {order.status !== 'cancelled' && order.status !== 'delivered' && (

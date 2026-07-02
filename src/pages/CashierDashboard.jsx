@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders } from '../contexts/OrdersContext';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Receipt, Search, CheckCircle2, XCircle, Clock, ChefHat, Check, User, X } from 'lucide-react';
+import { LogOut, Receipt, Search, CheckCircle2, XCircle, Clock, ChefHat, Check, User, X, Truck } from 'lucide-react';
 import clsx from 'clsx';
 
 export function CashierDashboard() {
@@ -57,12 +57,14 @@ export function CashierDashboard() {
     switch (status) {
       case 'pending':
         return { icon: Clock, label: 'Neu', className: 'bg-orange-50 text-orange-700 border-orange-100' };
-      case 'preparing':
-        return { icon: ChefHat, label: 'Zubereitung', className: 'bg-blue-50 text-blue-700 border-blue-100' };
+      case 'accepted':
+        return { icon: ChefHat, label: 'Angenommen', className: 'bg-blue-50 text-blue-700 border-blue-100' };
       case 'ready':
-        return { icon: CheckCircle2, label: 'Bereit', className: 'bg-green-50 text-green-700 border-green-100' };
+        return { icon: CheckCircle2, label: 'Abholbereit', className: 'bg-green-50 text-green-700 border-green-100' };
+      case 'delivering':
+        return { icon: Truck, label: 'Wird geliefert', className: 'bg-purple-50 text-purple-700 border-purple-100' };
       case 'delivered':
-        return { icon: Check, label: 'Geliefert', className: 'bg-gray-150 text-gray-700 border-gray-200' };
+        return { icon: Check, label: 'Zugestellt', className: 'bg-gray-150 text-gray-700 border-gray-200' };
       case 'cancelled':
         return { icon: XCircle, label: 'Storniert', className: 'bg-red-50 text-red-700 border-red-100' };
       default:

@@ -160,7 +160,7 @@ export function OrdersProvider({ children }) {
       }
       
       // Notify customer (only the specific customer who placed this order)
-      const statusText = newStatus === 'ready' ? 'Fertig / Abholbereit! 🎉' : newStatus === 'preparing' ? 'Wird zubereitet 👩‍🍳' : newStatus === 'delivered' ? 'Geliefert' : 'Abgeschlossen';
+      const statusText = newStatus === 'accepted' ? 'Angenommen 👩‍🍳' : newStatus === 'ready' ? 'Abholbereit! 🎉' : newStatus === 'delivering' ? 'Auf dem Weg! 🚚' : newStatus === 'delivered' ? 'Zugestellt! 🍽️' : 'Storniert';
       try {
         const order = getOrder(orderId);
         if (order && order.customerId) {

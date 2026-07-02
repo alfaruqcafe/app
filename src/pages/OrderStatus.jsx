@@ -1,9 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useOrders } from '../contexts/OrdersContext';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Clock, ChefHat, CheckCircle2, PartyPopper } from 'lucide-react';
+import { ArrowLeft, Clock, ChefHat, CheckCircle2, PartyPopper, Truck } from 'lucide-react';
 import clsx from 'clsx';
-import { ORDER_STATUS_STEPS, STATUS_LABELS } from '../lib/orderStatus';
+import { CUSTOMER_STATUS_STEPS, STATUS_LABELS } from '../lib/orderStatus';
 
 export function OrderStatus() {
   const { id } = useParams();
@@ -12,11 +12,11 @@ export function OrderStatus() {
   const { user } = useAuth();
   const order = getOrder(id);
 
-  const steps = ORDER_STATUS_STEPS;
+  const steps = CUSTOMER_STATUS_STEPS;
   const STATUS_ICONS = {
     pending: Clock, 
-    preparing: ChefHat, 
-    ready: CheckCircle2, 
+    accepted: ChefHat, 
+    delivering: Truck, 
     delivered: PartyPopper 
   };
 
@@ -37,7 +37,11 @@ export function OrderStatus() {
     );
   }
 
-  const currentStepIndex = order.status === "cancelled" ? -1 : steps.indexOf(order.status);
+  let activeStatus = order.status;
+  if (activeStatus === "ready") {
+    activeStatus = "accepted";
+  }
+  const currentStepIndex = order.status === "cancelled" ? -1 : steps.indexOf(activeStatus);
 
   return (
     <div className="pb-24 bg-[#fdfbf7] min-h-screen">
