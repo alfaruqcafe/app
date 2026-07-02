@@ -31,6 +31,7 @@ export function StaffDashboard() {
 
   const filteredOrders = orders.filter(o => {
     if (filter === 'active') return o.status !== 'delivered' && o.status !== 'cancelled';
+    if (filter === 'ready') return o.status === 'ready';
     return true;
   });
 
@@ -115,16 +116,25 @@ export function StaffDashboard() {
           <button 
             onClick={() => setFilter('active')}
             className={clsx(
-              "flex-1 py-2 text-sm font-bold rounded-lg transition-all",
+              "flex-1 py-2 text-xs font-bold rounded-lg transition-all",
               filter === 'active' ? "bg-white shadow-sm text-primary" : "text-gray-500"
             )}
           >
             Aktive ({orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').length})
           </button>
           <button 
+            onClick={() => setFilter('ready')}
+            className={clsx(
+              "flex-1 py-2 text-xs font-bold rounded-lg transition-all",
+              filter === 'ready' ? "bg-white shadow-sm text-primary" : "text-gray-500"
+            )}
+          >
+            Abholbereit ({orders.filter(o => o.status === 'ready').length})
+          </button>
+          <button 
             onClick={() => setFilter('all')}
             className={clsx(
-              "flex-1 py-2 text-sm font-bold rounded-lg transition-all",
+              "flex-1 py-2 text-xs font-bold rounded-lg transition-all",
               filter === 'all' ? "bg-white shadow-sm text-primary" : "text-gray-500"
             )}
           >
