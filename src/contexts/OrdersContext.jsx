@@ -29,8 +29,8 @@ export function OrdersProvider({ children }) {
           )
         `);
 
-      // Filter by customer_id if the user is a standard customer
-      if (user.role !== 'staff' && user.role !== 'admin') {
+      // Filter by customer_id if standard user (customer)
+      if (user.role === 'customer') {
         query = query.eq('customer_id', user.id);
       }
 
@@ -47,6 +47,7 @@ export function OrdersProvider({ children }) {
           note: o.note,
           status: o.status,
           totalPrice: Number(o.total_price),
+          isPaid: o.is_paid || false,
           createdAt: o.created_at,
           items: o.items.map(i => ({
             menuItemId: i.menu_item_id,
@@ -173,12 +174,33 @@ export function OrdersProvider({ children }) {
     }
   };
 
+  const markOrderAsPaid = async (orderId) => {
+    if (!supabase) return;
+
+    try {
+      // Optimistic UI update
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, isPaid: true } : o));
+
+      const { error } = await supabase
+        .from('orders')
+        .update({ is_paid: true })
+        .eq('id', orderId);
+
+      if (error) {
+        fetchOrders();
+        throw error;
+      }
+    } catch (err) {
+      console.error("Failed to mark order as paid:", err);
+    }
+  };
+
   const getOrder = (id) => orders.find(o => o.id === Number(id));
 
   const activeOrders = useMemo(() => orders.filter(o => isActiveStatus(o.status)), [orders]);
 
   return (
-    <OrdersContext.Provider value={{ orders, activeOrders, addOrder, updateOrderStatus, getOrder, loading }}>
+    <OrdersContext.Provider value={{ orders, activeOrders, addOrder, updateOrderStatus, markOrderAsPaid, getOrder, loading }}>
       {children}
     </OrdersContext.Provider>
   );

@@ -28,6 +28,7 @@ CREATE TABLE orders (
   note TEXT,
   status VARCHAR(50) DEFAULT 'pending', -- pending, preparing, ready, delivered, cancelled
   total_price DECIMAL(10, 2) NOT NULL,
+  is_paid BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -116,19 +117,20 @@ CREATE POLICY "Public read categories" ON categories FOR SELECT USING (true);
 CREATE POLICY "Public read menu_items" ON menu_items FOR SELECT USING (true);
 CREATE POLICY "Public read events" ON events FOR SELECT USING (true);
 
--- Scoped policies for orders: Customers see own, Staff/Admin see all
+-- Scoped policies for orders: Customers see own, Staff/Admin/Cashier see all
 CREATE POLICY "Customers read own orders" ON orders FOR SELECT USING (customer_id = auth.uid());
-CREATE POLICY "Staff read all orders" ON orders FOR SELECT USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('staff', 'admin')));
+CREATE POLICY "Staff/Admin/Cashier read all orders" ON orders FOR SELECT USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('staff', 'admin', 'cashier')));
 CREATE POLICY "Insert own orders" ON orders FOR INSERT WITH CHECK (customer_id = auth.uid());
+CREATE POLICY "Staff/Admin/Cashier update orders" ON orders FOR UPDATE USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('staff', 'admin', 'cashier')));
 
 -- Scoped policies for order_items
 CREATE POLICY "Public insert order_items" ON order_items FOR INSERT WITH CHECK (true);
-CREATE POLICY "Read order_items of own or staff orders" ON order_items FOR SELECT USING (
+CREATE POLICY "Read order_items of own or staff/admin/cashier orders" ON order_items FOR SELECT USING (
   EXISTS (
     SELECT 1 FROM orders o WHERE o.id = order_items.order_id
     AND (
       o.customer_id = auth.uid()
-      OR EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('staff', 'admin'))
+      OR EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('staff', 'admin', 'cashier'))
     )
   )
 );

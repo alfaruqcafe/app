@@ -21,6 +21,7 @@ export function Login() {
     try {
       const user = await login(username, password);
       if (user.role === 'admin') navigate('/admin');
+      else if (user.role === 'cashier') navigate('/cashier');
       else navigate('/staff');
     } catch (err) {
       setError(err.message || 'Login fehlgeschlagen');

@@ -65,6 +65,7 @@ export function AuthProvider({ children }) {
       let finalRole = data?.role || 'staff';
       if (authUser.email === 'ahmed-saado@gmx.de') finalRole = 'admin';
       if (authUser.email === 'alfaruqcafe@gmx.de') finalRole = 'staff';
+      if (authUser.email === 'kassierer@gmx.de') finalRole = 'cashier';
 
       setUser({
         id: authUser.id,
@@ -78,16 +79,26 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (emailOrUsername, password) => {
+    let loginEmail = emailOrUsername;
+    if (emailOrUsername === 'kassierer') {
+      loginEmail = 'kassierer@gmx.de';
+    }
+
     if (!supabase) {
       // Mock fallback for simple testing if Supabase is down
-      if (email === 'admin' && password === 'admin') {
+      if (loginEmail === 'admin' && password === 'admin') {
         const u = { role: 'admin', name: 'Admin User' };
         setUser(u);
         return u;
       }
-      if (email === 'staff' && password === 'staff') {
+      if (loginEmail === 'staff' && password === 'staff') {
         const u = { role: 'staff', name: 'Staff User' };
+        setUser(u);
+        return u;
+      }
+      if (loginEmail === 'kassierer@gmx.de' && password === 'Kasse123') {
+        const u = { role: 'cashier', name: 'Cashier User' };
         setUser(u);
         return u;
       }
@@ -95,7 +106,7 @@ export function AuthProvider({ children }) {
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: loginEmail,
       password
     });
     if (error) throw error;
@@ -108,8 +119,9 @@ export function AuthProvider({ children }) {
       .single();
 
     let finalRole = profile?.role || 'staff';
-    if (email === 'ahmed-saado@gmx.de') finalRole = 'admin';
-    if (email === 'alfaruqcafe@gmx.de') finalRole = 'staff';
+    if (loginEmail === 'ahmed-saado@gmx.de') finalRole = 'admin';
+    if (loginEmail === 'alfaruqcafe@gmx.de') finalRole = 'staff';
+    if (loginEmail === 'kassierer@gmx.de') finalRole = 'cashier';
 
     return {
       ...data.user,

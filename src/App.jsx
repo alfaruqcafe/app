@@ -9,6 +9,7 @@ import { Booking } from './pages/Booking';
 import { Login } from './pages/Login';
 import { StaffDashboard } from './pages/StaffDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { CashierDashboard } from './pages/CashierDashboard';
 import { ToastProvider } from './contexts/ToastContext';
 import { CartProvider } from './contexts/CartContext';
 import { OrdersProvider } from './contexts/OrdersContext';
@@ -37,6 +38,7 @@ function App() {
                   {/* Protected Routes (we can add wrappers later) */}
                   <Route path="staff" element={<StaffDashboard />} />
                   <Route path="admin" element={<AdminDashboard />} />
+                  <Route path="cashier" element={<CashierDashboard />} />
                   
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
