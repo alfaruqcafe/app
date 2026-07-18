@@ -32,7 +32,7 @@ export function Home() {
         </div>
         <p className="text-[11px] font-bold tracking-[3px] uppercase text-[#6b3520] mb-1.5">Café in der Moschee</p>
         <p className="text-[13px] italic text-[#7c4b2a] opacity-85 text-center leading-relaxed">
-          "Jeder Kauf tut gutes!"
+          "Jeder Kauf unterstützt Moschee, Schule und Jugend."
         </p>
       </div>
 
