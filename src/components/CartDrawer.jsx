@@ -4,9 +4,14 @@ import { useCart } from '../contexts/CartContext';
 import { useOrders } from '../contexts/OrdersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { useAppMode } from '../contexts/AppModeContext';
 import { buildOptionsSummary } from '../lib/productOptions';
-import { X, ShoppingBag, Plus, Minus, Trash2, ClipboardList, ArrowRight, ArrowLeft, Check, Bell } from 'lucide-react';
+import { X, ShoppingBag, Plus, Minus, Trash2, ClipboardList, ArrowRight, ArrowLeft, Check, Bell, Ban } from 'lucide-react';
 import clsx from 'clsx';
+
+// Sentinel: table_number = 0 bedeutet "kein Tisch / Abholung" (Abholmodus).
+// So ist keine Datenbank-Migration nötig (Spalte ist NOT NULL INTEGER).
+const PICKUP_TABLE_SENTINEL = 0;
 
 // Baut eine lesbare Bestell-Notiz aus Kundennotiz + Extra-Aufschlüsselung je Zeile.
 function composeNote(items, customNote) {
@@ -26,6 +31,7 @@ export function CartDrawer({ open, onClose }) {
   const { addOrder } = useOrders();
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { isPickup, isMenuOnly } = useAppMode();
 
   const [step, setStep] = useState("cart");
   const [tableNumber, setTableNumber] = useState("");
@@ -50,7 +56,12 @@ export function CartDrawer({ open, onClose }) {
   }
 
   async function handleSubmit() {
-    if (!tableNumber) {
+    if (isPickup) {
+      if (!customerName.trim()) {
+        setError("Bitte deinen Namen angeben.");
+        return;
+      }
+    } else if (!tableNumber) {
       setError("Bitte Tischnummer auswählen.");
       return;
     }
@@ -59,7 +70,7 @@ export function CartDrawer({ open, onClose }) {
       await new Promise(resolve => setTimeout(resolve, 800));
 
       const orderId = await addOrder({
-        tableNumber: tableNumber.trim(),
+        tableNumber: isPickup ? PICKUP_TABLE_SENTINEL : tableNumber.trim(),
         customerName: customerName || null,
         customerId: user?.id || null,
         note: composeNote(items, note),
@@ -172,31 +183,48 @@ export function CartDrawer({ open, onClose }) {
           {/* CHECKOUT STEP */}
           {step === "checkout" && (
             <div className="flex flex-col gap-4">
-              <div>
-                <label className="text-[13px] font-bold block mb-1.5 text-gray-700">Tischnummer *</label>
-                <select
-                  value={tableNumber}
-                  onChange={e => setTableNumber(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-[#e5d9c8] text-sm box-border outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white transition-all"
-                >
-                  <option value="">Tisch auswählen...</option>
-                  {Array.from({ length: 20 }, (_, i) => i + 1).map(num => (
-                    <option key={num} value={num}>
-                      Tisch {num}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-[13px] font-bold block mb-1.5 text-gray-700">Name (optional)</label>
-                <input
-                  type="text"
-                  value={customerName}
-                  onChange={e => setCustomerName(e.target.value)}
-                  placeholder="Für wen?"
-                  className="w-full p-3 rounded-xl border border-[#e5d9c8] text-sm box-border outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                />
-              </div>
+              {isPickup ? (
+                <div>
+                  <label className="text-[13px] font-bold block mb-1.5 text-gray-700">Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={customerName}
+                    onChange={e => setCustomerName(e.target.value)}
+                    placeholder="Wie sollen wir dich aufrufen?"
+                    className="w-full p-3 rounded-xl border border-[#e5d9c8] text-sm box-border outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1.5 m-0">Kein Tisch nötig – du wirst per Namen aufgerufen.</p>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="text-[13px] font-bold block mb-1.5 text-gray-700">Tischnummer *</label>
+                    <select
+                      value={tableNumber}
+                      onChange={e => setTableNumber(e.target.value)}
+                      className="w-full p-3 rounded-xl border border-[#e5d9c8] text-sm box-border outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white transition-all"
+                    >
+                      <option value="">Tisch auswählen...</option>
+                      {Array.from({ length: 20 }, (_, i) => i + 1).map(num => (
+                        <option key={num} value={num}>
+                          Tisch {num}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[13px] font-bold block mb-1.5 text-gray-700">Name (optional)</label>
+                    <input
+                      type="text"
+                      value={customerName}
+                      onChange={e => setCustomerName(e.target.value)}
+                      placeholder="Für wen?"
+                      className="w-full p-3 rounded-xl border border-[#e5d9c8] text-sm box-border outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                    />
+                  </div>
+                </>
+              )}
               <div>
                 <label className="text-[13px] font-bold block mb-1.5 text-gray-700">Anmerkung (optional)</label>
                 <textarea
@@ -283,7 +311,12 @@ export function CartDrawer({ open, onClose }) {
 
         {/* Footer */}
         <div className="p-4 border-t border-[#e5d9c8] bg-white">
-          {step === "cart" && items.length > 0 && (
+          {step === "cart" && items.length > 0 && isMenuOnly && (
+            <div className="w-full p-3.5 rounded-xl bg-gray-100 text-gray-500 font-bold text-[13px] flex items-center justify-center gap-2 text-center">
+              <Ban size={16} /> Aktuell werden keine Bestellungen angenommen.
+            </div>
+          )}
+          {step === "cart" && items.length > 0 && !isMenuOnly && (
             <button
               onClick={() => setStep("checkout")}
               className="w-full p-3.5 rounded-xl bg-grad text-white border-none font-bold text-[15px] cursor-pointer flex justify-between items-center shadow-lg shadow-primary/20 active:scale-95 transition-transform"

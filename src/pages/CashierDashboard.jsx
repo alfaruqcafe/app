@@ -38,16 +38,21 @@ export function CashierDashboard() {
     }
   };
 
-  // Group orders by table number
+  // Group orders by table number. Bestellungen ohne Tisch (Abholmodus,
+  // tableNumber === 0) werden NICHT zusammengefasst, sondern bilden jeweils
+  // eine eigene Gruppe (pro Order-ID) – sonst würden fremde Abhol-Kunden an
+  // der Kasse vermischt werden.
   const tables = useMemo(() => {
     const groups = {};
     orders.forEach(order => {
       if (order.status === 'cancelled') return;
 
-      const tNum = order.tableNumber;
-      if (!groups[tNum]) {
-        groups[tNum] = {
-          tableNumber: tNum,
+      const hasTable = order.tableNumber > 0;
+      const groupKey = hasTable ? `table-${order.tableNumber}` : `pickup-${order.id}`;
+      if (!groups[groupKey]) {
+        groups[groupKey] = {
+          key: groupKey,
+          tableNumber: hasTable ? order.tableNumber : null,
           orders: [],
           customerNames: new Set(),
           items: [],
@@ -57,7 +62,7 @@ export function CashierDashboard() {
         };
       }
 
-      const group = groups[tNum];
+      const group = groups[groupKey];
       group.orders.push(order);
       if (order.customerName) {
         group.customerNames.add(order.customerName);
@@ -84,6 +89,7 @@ export function CashierDashboard() {
       const tableUnpaidPrice = group.items.reduce((sum, item) => sum + (item.isPaid ? 0 : item.price * item.quantity), 0);
 
       return {
+        key: group.key,
         tableNumber: group.tableNumber,
         orders: group.orders,
         customerName: namesArray.join(', '),
@@ -106,7 +112,7 @@ export function CashierDashboard() {
       // 2. Filter by search term (table number or customer name)
       if (searchTerm.trim() !== '') {
         const term = searchTerm.toLowerCase();
-        const matchesTable = String(table.tableNumber).toLowerCase().includes(term);
+        const matchesTable = table.tableNumber != null && String(table.tableNumber).toLowerCase().includes(term);
         const matchesName = table.customerName ? table.customerName.toLowerCase().includes(term) : false;
         return matchesTable || matchesName;
       }
@@ -229,7 +235,7 @@ export function CashierDashboard() {
             {filteredTables.map(table => {
               return (
                 <div
-                  key={table.tableNumber}
+                  key={table.key}
                   className={clsx(
                     "bg-white rounded-3xl p-5 shadow-sm border transition-all duration-300 flex flex-col gap-4",
                     table.isPaid ? "border-green-100" : "border-[#e5d9c8] hover:shadow-md"
@@ -239,7 +245,9 @@ export function CashierDashboard() {
                   <div className="flex justify-between items-start pb-3 border-b border-gray-100">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-base text-[#3d1f0f]">Tisch {table.tableNumber}</span>
+                        <span className="font-bold text-base text-[#3d1f0f]">
+                          {table.tableNumber != null ? `Tisch ${table.tableNumber}` : 'Abholung'}
+                        </span>
                         {table.customerName && (
                           <span className="text-xs text-gray-500 flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-full">
                             <User size={10} />

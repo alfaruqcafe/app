@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { motion, AnimatePresence, LayoutGroup } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useMenu } from '../contexts/MenuContext';
@@ -10,8 +10,6 @@ import { CartDrawer } from '../components/CartDrawer';
 import { ProductDetail } from '../components/ProductDetail';
 import { ShoppingBag, Coffee, CupSoda, Sandwich, ClipboardList } from 'lucide-react';
 import clsx from 'clsx';
-
-const SPRING = { type: 'spring', stiffness: 320, damping: 32, mass: 0.9 };
 
 export function Menu() {
   const navigate = useNavigate();
@@ -41,10 +39,12 @@ export function Menu() {
   const visibleCategories = categories.filter(c => !HIDDEN_OPTION_CATEGORIES.includes(c.name));
 
   return (
-    <LayoutGroup>
+    <>
       <div className="pb-36 bg-[#fdfbf7] min-h-screen">
         {/* Header */}
-        <div className="pt-12 px-5 pb-6 bg-grad rounded-b-[2.5rem] shadow-sm mb-6">
+        <div
+          className="pt-12 px-5 pb-6 bg-grad rounded-b-[2.5rem] shadow-sm mb-6"
+        >
           {canOrder && (
             <button
               onClick={handleBack}
@@ -54,7 +54,7 @@ export function Menu() {
             </button>
           )}
           <h1 className="font-serif text-[28px] font-bold text-white m-0 mb-1">
-            {canOrder ? "Neue Bestellung" : "Speisekarte"}
+            Speisekarte
           </h1>
           <p className="text-white/70 text-[13px] m-0">
             {canOrder ? "Tippen zum Öffnen & Anpassen" : "Unsere aktuellen Angebote"}
@@ -113,19 +113,17 @@ export function Menu() {
 
                 <div className="grid grid-cols-2 gap-3">
                   {mainItems.map(item => (
-                    <motion.button
+                    <button
                       key={item.id}
-                      layoutId={`card-${item.id}`}
-                      transition={SPRING}
                       onClick={() => item.available && setSelected({ product: item, category })}
                       disabled={!item.available}
                       className={clsx(
-                        "text-left bg-white rounded-2xl overflow-hidden flex flex-col relative border border-[#e5d9c8] shadow-sm",
+                        "text-left bg-white rounded-2xl overflow-hidden flex flex-col relative border border-[#e5d9c8] shadow-sm transition-transform",
                         item.available ? "active:scale-95 cursor-pointer" : "cursor-default opacity-60"
                       )}
                     >
                       {/* Image/Color Box */}
-                      <motion.div layoutId={`media-${item.id}`} transition={SPRING} className="h-28 w-full shrink-0 relative flex items-center justify-center bg-gray-50 border-b border-[#e5d9c8]/50 overflow-hidden">
+                      <div className="h-28 w-full shrink-0 relative flex items-center justify-center bg-gray-50 border-b border-[#e5d9c8]/50 overflow-hidden">
                         {item.imageUrl ? (
                           <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                         ) : (
@@ -153,14 +151,14 @@ export function Menu() {
                         <span className="absolute bottom-2 right-2 bg-primary text-white text-[12px] font-bold px-2 py-1 rounded-lg shadow-sm z-20">
                           {item.price === 0 ? "Gratis" : `${item.price.toFixed(2)} €`}
                         </span>
-                      </motion.div>
+                      </div>
 
                       {/* Info */}
                       <div className="p-2.5 flex-1 bg-white">
                         <p className="font-bold text-[13px] m-0 mb-0.5 leading-tight text-[#3d1f0f] line-clamp-1">{item.name}</p>
                         <p className="text-[11px] text-gray-400 m-0 leading-snug line-clamp-2 min-h-[1.9rem]">{item.description || ''}</p>
                       </div>
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -202,6 +200,6 @@ export function Menu() {
           />
         )}
       </AnimatePresence>
-    </LayoutGroup>
+    </>
   );
 }

@@ -12,14 +12,12 @@ import {
   computeUnitPrice,
 } from '../lib/productOptions';
 
-const SPRING = { type: 'spring', stiffness: 320, damping: 32, mass: 0.9 };
 const MIN_QTY = 1;
 const MAX_QTY = 5;
 
 // Medien-Box (Bild oder farbige Icon-Fläche) – identisches Markup wie in der Karte,
 // damit der layoutId-Übergang sauber morpht.
 function Media({ product, category, big }) {
-  const iconSize = big ? 64 : 28;
   if (product.imageUrl) {
     return <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />;
   }
@@ -215,14 +213,16 @@ export function ProductDetail({ product, category, categories, onClose }) {
         onClick={onClose}
       />
 
-      {/* Panel (Shared-Element) */}
+      {/* Panel (ohne Hero-Animation: einfaches Einblenden) */}
       <motion.div
-        layoutId={`card-${product.id}`}
-        transition={SPRING}
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 24 }}
+        transition={{ duration: 0.2 }}
         className="absolute inset-x-0 bottom-0 top-[4%] w-full max-w-[480px] mx-auto bg-[#fdfbf7] rounded-t-[2rem] overflow-hidden flex flex-col shadow-[0_-10px_60px_rgba(0,0,0,0.35)]"
       >
         {/* Hero-Bild */}
-        <motion.div layoutId={`media-${product.id}`} transition={SPRING} className="relative h-56 w-full shrink-0 flex items-center justify-center bg-gray-50 overflow-hidden">
+        <div className="relative h-56 w-full shrink-0 flex items-center justify-center bg-gray-50 overflow-hidden">
           <Media product={product} category={category} big />
           <button
             onClick={onClose}
@@ -235,14 +235,10 @@ export function ProductDetail({ product, category, categories, onClose }) {
               <span className="bg-white text-gray-600 text-[12px] font-bold px-4 py-2 rounded-full uppercase tracking-wider shadow-sm">Ausverkauft</span>
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* Scrollbarer Inhalt */}
-        <motion.div
-          className="flex-1 overflow-y-auto px-5 pt-4 pb-4"
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12, duration: 0.25 }}
-        >
+        <div className="flex-1 overflow-y-auto px-5 pt-4 pb-4">
           <div className="flex items-start justify-between gap-3 mb-1">
             <h2 className="font-serif text-[22px] font-bold text-[#3d1f0f] m-0 leading-tight">{product.name}</h2>
             <span className="font-bold text-[16px] text-primary whitespace-nowrap mt-1">{product.price.toFixed(2)} €</span>
@@ -299,13 +295,10 @@ export function ProductDetail({ product, category, categories, onClose }) {
             }
             return null;
           })}
-        </motion.div>
+        </div>
 
         {/* Footer: Gesamtpreis + Hinzufügen */}
-        <motion.div
-          className="p-4 border-t border-[#e5d9c8] bg-white shrink-0"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.18 }}
-        >
+        <div className="p-4 border-t border-[#e5d9c8] bg-white shrink-0">
           {drinkMissing && (
             <p className="text-[12px] text-amber-600 font-medium mb-2 text-center">Bitte ein Getränk auswählen.</p>
           )}
@@ -320,7 +313,7 @@ export function ProductDetail({ product, category, categories, onClose }) {
             <span className="flex items-center gap-2"><ShoppingBag size={18} /> In den Warenkorb</span>
             <span>{unitPrice.toFixed(2)} €</span>
           </button>
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   );

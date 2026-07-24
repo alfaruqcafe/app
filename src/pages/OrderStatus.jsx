@@ -56,7 +56,7 @@ export function OrderStatus() {
         <div>
           <h1 className="text-lg font-bold text-white m-0">Bestellung #{order.id.toString().slice(-4)}</h1>
           <p className="text-white/70 text-xs m-0">
-            Tisch {order.tableNumber}{order.customerName ? ` · ${order.customerName}` : ""}
+            {order.tableNumber > 0 ? `Tisch ${order.tableNumber}` : 'Abholung'}{order.customerName ? ` · ${order.customerName}` : ""}
           </p>
         </div>
       </div>

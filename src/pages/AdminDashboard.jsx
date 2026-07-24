@@ -2,15 +2,20 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useMenu } from '../contexts/MenuContext';
-import { LogOut, Plus, Trash2, Edit2, X, Save, Bell, Calendar, BookOpen, Ban, CheckCircle2 } from 'lucide-react';
+import { useAppMode, ORDER_MODES } from '../contexts/AppModeContext';
+import { LogOut, Plus, Trash2, Edit2, X, Save, Bell, Calendar, BookOpen, Ban, CheckCircle2, ArrowUp, ArrowDown, SlidersHorizontal, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export function AdminDashboard() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
-  const { categories, updateItem, addCategory, deleteCategory, addItem, deleteItem, toggleAvailability } = useMenu();
-  
-  const [activeTab, setActiveTab] = useState('menu'); // 'menu' or 'events'
+  const {
+    categories, updateItem, addCategory, deleteCategory, addItem, deleteItem, toggleAvailability,
+    renameCategory, reorderCategories, reorderItems
+  } = useMenu();
+  const { orderMode, setOrderMode } = useAppMode();
+
+  const [activeTab, setActiveTab] = useState('menu'); // 'menu' | 'mode' | 'events'
   const [hasNotificationPermission, setHasNotificationPermission] = useState(() => {
     return typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted';
   });
@@ -133,6 +138,29 @@ export function AdminDashboard() {
     if (confirm("Kategorie wirklich löschen?")) deleteCategory(id);
   }
 
+  function handleRenameCategory(category) {
+    const name = prompt("Neuer Name der Kategorie:", category.name);
+    if (name && name.trim() && name.trim() !== category.name) {
+      renameCategory(category.id, name.trim());
+    }
+  }
+
+  function moveCategory(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= categories.length) return;
+    const newOrder = [...categories];
+    [newOrder[index], newOrder[target]] = [newOrder[target], newOrder[index]];
+    reorderCategories(newOrder.map(c => c.id));
+  }
+
+  function moveItem(category, index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= category.items.length) return;
+    const newItems = [...category.items];
+    [newItems[index], newItems[target]] = [newItems[target], newItems[index]];
+    reorderItems(category.id, newItems.map(i => i.id));
+  }
+
   function handleAddItemClick(categoryId) {
     setEditingItem({ categoryId, itemId: null });
     setEditForm({ name: '', price: '', description: '', imageUrl: '' });
@@ -206,19 +234,57 @@ export function AdminDashboard() {
       <div className="p-4">
         {/* Tabs */}
         <div className="flex gap-2 mb-6 bg-white p-1 rounded-xl shadow-sm border border-[#e5d9c8]">
-          <button 
+          <button
             onClick={() => setActiveTab('menu')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-sm transition-colors border-none cursor-pointer ${activeTab === 'menu' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-gray-500 hover:text-[#3d1f0f]'}`}
           >
             <BookOpen size={16} /> Speisekarte
           </button>
-          <button 
+          <button
+            onClick={() => setActiveTab('mode')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-sm transition-colors border-none cursor-pointer ${activeTab === 'mode' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-gray-500 hover:text-[#3d1f0f]'}`}
+          >
+            <SlidersHorizontal size={16} /> Modus
+          </button>
+          <button
             onClick={() => setActiveTab('events')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-sm transition-colors border-none cursor-pointer ${activeTab === 'events' ? 'bg-primary text-white shadow-sm' : 'bg-transparent text-gray-500 hover:text-[#3d1f0f]'}`}
           >
             <Calendar size={16} /> Events
           </button>
         </div>
+
+        {activeTab === 'mode' && (
+          <>
+            <div className="mb-6">
+              <h2 className="font-bold text-lg text-[#3d1f0f] mb-1">Betriebsmodus</h2>
+              <p className="text-sm text-gray-500 m-0">Legt fest, wie Kunden aktuell bestellen können.</p>
+            </div>
+            <div className="flex flex-col gap-3">
+              {Object.entries(ORDER_MODES).map(([key, info]) => {
+                const isActive = orderMode === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setOrderMode(key)}
+                    className={`text-left bg-white rounded-2xl p-4 shadow-sm border-2 cursor-pointer transition-all flex items-start justify-between gap-3 ${isActive ? 'border-primary' : 'border-[#e5d9c8] hover:border-primary/30'}`}
+                  >
+                    <div>
+                      <p className="font-bold text-[#3d1f0f] m-0 mb-1">{info.label}</p>
+                      <p className="text-xs text-gray-500 m-0 leading-relaxed">{info.description}</p>
+                    </div>
+                    <div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center border-2 mt-0.5 ${isActive ? 'bg-primary border-primary text-white' : 'border-gray-300'}`}>
+                      {isActive && <Check size={14} strokeWidth={3} />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-gray-400 mt-4 leading-relaxed">
+              Hinweis: Der Modus wird aktuell lokal auf diesem Gerät gespeichert (für das lokale Testen). Für einen geräteübergreifenden Modus ist noch ein kleiner Datenbank-Schritt nötig.
+            </p>
+          </>
+        )}
 
         {activeTab === 'menu' && (
           <>
@@ -233,12 +299,35 @@ export function AdminDashboard() {
             </div>
 
             <div className="flex flex-col gap-6">
-              {categories.map(category => (
+              {categories.map((category, catIndex) => (
                 <div key={category.id} className="bg-white rounded-2xl p-4 shadow-sm border border-[#e5d9c8]">
                   <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
                     <h3 className="font-bold text-[#3d1f0f] m-0">{category.name}</h3>
                     <div className="flex gap-2">
-                      <button 
+                      <button
+                        onClick={() => moveCategory(catIndex, -1)}
+                        disabled={catIndex === 0}
+                        className="text-gray-400 hover:text-primary bg-transparent border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Kategorie nach oben verschieben"
+                      >
+                        <ArrowUp size={16} />
+                      </button>
+                      <button
+                        onClick={() => moveCategory(catIndex, 1)}
+                        disabled={catIndex === categories.length - 1}
+                        className="text-gray-400 hover:text-primary bg-transparent border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Kategorie nach unten verschieben"
+                      >
+                        <ArrowDown size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleRenameCategory(category)}
+                        className="text-gray-400 hover:text-primary bg-transparent border-none cursor-pointer"
+                        title="Kategorie umbenennen"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
                         onClick={() => handleDeleteCategory(category.id)}
                         className="text-gray-400 hover:text-red-500 bg-transparent border-none cursor-pointer"
                         title="Kategorie löschen"
@@ -249,7 +338,7 @@ export function AdminDashboard() {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    {category.items.map(item => (
+                    {category.items.map((item, itemIndex) => (
                       <div key={item.id} className={`flex justify-between items-center p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-colors ${!item.available ? 'opacity-60' : ''}`}>
                         <div className="flex items-center gap-3">
                           {item.imageUrl ? (
@@ -263,6 +352,22 @@ export function AdminDashboard() {
                           </div>
                         </div>
                         <div className="flex gap-2 shrink-0">
+                          <button
+                            onClick={() => moveItem(category, itemIndex, -1)}
+                            disabled={itemIndex === 0}
+                            className="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 border-none flex items-center justify-center cursor-pointer hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Nach oben verschieben"
+                          >
+                            <ArrowUp size={14} />
+                          </button>
+                          <button
+                            onClick={() => moveItem(category, itemIndex, 1)}
+                            disabled={itemIndex === category.items.length - 1}
+                            className="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 border-none flex items-center justify-center cursor-pointer hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Nach unten verschieben"
+                          >
+                            <ArrowDown size={14} />
+                          </button>
                           <button
                             onClick={() => toggleAvailability(item.id, item.available)}
                             className={`w-8 h-8 rounded-lg border-none flex items-center justify-center cursor-pointer ${item.available ? 'bg-green-50 text-green-600 hover:bg-green-100' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}

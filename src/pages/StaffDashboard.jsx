@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders } from '../contexts/OrdersContext';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, CheckCircle2, Clock, ChefHat, PartyPopper, Bell, MapPin, Truck } from 'lucide-react';
+import { LogOut, CheckCircle2, Clock, ChefHat, PartyPopper, Bell, MapPin, Truck, User } from 'lucide-react';
 import clsx from 'clsx';
 
 export function StaffDashboard() {
@@ -154,13 +154,21 @@ export function StaffDashboard() {
               <div key={order.id} className="bg-white rounded-2xl p-4 shadow-sm border border-[#e5d9c8]">
                 <div className="flex justify-between items-start mb-3 pb-3 border-b border-gray-100">
                   <div>
-                    <p className="font-bold text-lg m-0 leading-tight flex items-center gap-2">
-                      <MapPin size={14} />
-                      {order.tableNumber}
-                    </p>
+                    {order.tableNumber > 0 ? (
+                      <p className="font-bold text-lg m-0 leading-tight flex items-center gap-2">
+                        <MapPin size={14} />
+                        Tisch {order.tableNumber}
+                      </p>
+                    ) : (
+                      <p className="font-bold text-lg m-0 leading-tight flex items-center gap-2 text-primary">
+                        <User size={14} />
+                        {order.customerName || 'Abholung'}
+                      </p>
+                    )}
                     <p className="text-gray-400 text-xs mt-1 m-0">
                       #{order.id.toString().slice(-4)} • {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      {order.customerName ? ` • ${order.customerName}` : ''}
+                      {order.tableNumber > 0 && order.customerName ? ` • ${order.customerName}` : ''}
+                      {!(order.tableNumber > 0) ? ' • Abholung' : ''}
                     </p>
                   </div>
                   <div>

@@ -91,13 +91,20 @@ export function OrdersProvider({ children }) {
     if (!supabase) return 999; // Fallback ID
     
     try {
+      // Sicherstellen, dass customer_id immer gesetzt ist (erforderlich für RLS)
+      const customerId = orderData.customerId || user?.id;
+      
+      if (!customerId) {
+        throw new Error('Benutzer-ID nicht verfügbar. Bitte laden Sie die Seite neu.');
+      }
+
       // Insert order
       const { data: orderResult, error: orderError } = await supabase
         .from('orders')
         .insert({
           table_number: orderData.tableNumber,
           customer_name: orderData.customerName || null,
-          customer_id: orderData.customerId || null,
+          customer_id: customerId, // Verwende validierte ID
           note: orderData.note || null,
           total_price: orderData.totalPrice,
           status: 'pending'
@@ -105,7 +112,16 @@ export function OrdersProvider({ children }) {
         .select()
         .single();
 
-      if (orderError) throw orderError;
+      if (orderError) {
+        console.error('Supabase order insert error:', {
+          error: orderError,
+          message: orderError.message,
+          code: orderError.code,
+          hint: orderError.hint,
+          details: orderError.details
+        });
+        throw orderError;
+      }
 
       // Insert items
       const orderItems = orderData.items.map(item => ({
