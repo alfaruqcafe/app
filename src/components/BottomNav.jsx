@@ -56,11 +56,13 @@ export function BottomNav() {
       })}
 
       {/* Coming Soon: weitere Funktionen folgen */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 px-1 opacity-40 pointer-events-none cursor-not-allowed">
-        <div className="w-9 h-9 rounded-full flex items-center justify-center bg-transparent text-gray-500">
-          <Sparkles size={20} strokeWidth={2} />
+      <div className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 px-1 pointer-events-none cursor-not-allowed">
+        <div className="holo w-9 h-9 rounded-full flex items-center justify-center bg-transparent text-gray-500">
+          <span className="opacity-40">
+            <Sparkles size={20} strokeWidth={2} className="sparkle-drift" />
+          </span>
         </div>
-        <span className="text-[10px] font-semibold text-gray-400">Bald verfügbar</span>
+        <span className="text-[10px] font-semibold text-gray-400 opacity-40">Bald verfügbar</span>
       </div>
     </nav>
   );

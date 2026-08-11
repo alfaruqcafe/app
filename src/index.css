@@ -44,3 +44,81 @@
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* ── "Bald verfügbar": Glitzer-/Folien-Effekt (Sammelkarten-Look) ── */
+
+/* Regenbogen-Schicht driftet langsam hin und her */
+@keyframes holo-tint {
+  0%, 100% { background-position: 0% 50%; opacity: .55; }
+  50%      { background-position: 100% 50%; opacity: 1; }
+}
+
+/* Heller Lichtbalken wandert diagonal über die Fläche */
+@keyframes holo-sweep {
+  0%      { transform: translateX(-130%) skewX(-18deg); }
+  55%     { transform: translateX(230%) skewX(-18deg); }
+  100%    { transform: translateX(230%) skewX(-18deg); }
+}
+
+/* Icon wippt ganz leicht */
+@keyframes sparkle-drift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  25%      { transform: translate(.5px, -1.5px) rotate(-8deg) scale(1.08); }
+  50%      { transform: translate(0, .5px) rotate(5deg) scale(.96); }
+  75%      { transform: translate(-1px, -1px) rotate(-4deg) scale(1.05); }
+}
+
+.holo {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.holo::before,
+.holo::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Farbschimmer */
+.holo::before {
+  inset: 0;
+  background: linear-gradient(115deg,
+    rgba(255, 140, 190, .20) 0%,
+    rgba(255, 215, 130, .20) 20%,
+    rgba(150, 235, 195, .20) 40%,
+    rgba(140, 195, 255, .20) 60%,
+    rgba(205, 155, 255, .20) 80%,
+    rgba(255, 150, 180, .20) 100%);
+  background-size: 300% 300%;
+  animation: holo-tint 7s ease-in-out infinite;
+}
+
+/* Lichtreflex beim "Kippen" der Karte */
+.holo::after {
+  top: -60%;
+  bottom: -60%;
+  left: 0;
+  width: 45%;
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, .75) 45%,
+    rgba(255, 255, 255, .95) 50%,
+    rgba(255, 255, 255, .75) 55%,
+    rgba(255, 255, 255, 0) 100%);
+  animation: holo-sweep 4.5s ease-in-out infinite;
+}
+
+.sparkle-drift {
+  animation: sparkle-drift 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holo::before,
+  .holo::after,
+  .sparkle-drift {
+    animation: none;
+  }
+  .holo::after { opacity: 0; }
+}

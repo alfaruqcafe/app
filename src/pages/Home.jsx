@@ -82,13 +82,15 @@ export function Home() {
               </button>
             );
           })}
-          <div className="bg-white border border-[#e5d9c8] rounded-2xl p-4 text-left flex flex-col gap-2 shadow-sm opacity-40 cursor-not-allowed col-span-2">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-              <Sparkles size={20} />
-            </div>
-            <div>
-              <p className="font-bold text-[13px] text-[#3d1f0f] m-0">Bald verfügbar</p>
-              <p className="text-[11px] text-gray-400 mt-0.5 m-0">Weitere Funktionen folgen</p>
+          <div className="holo bg-white border border-[#e5d9c8] rounded-2xl p-4 text-left shadow-sm cursor-not-allowed col-span-2">
+            <div className="flex flex-col gap-2 opacity-40">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Sparkles size={20} className="sparkle-drift" />
+              </div>
+              <div>
+                <p className="font-bold text-[13px] text-[#3d1f0f] m-0">Bald verfügbar</p>
+                <p className="text-[11px] text-gray-400 mt-0.5 m-0">Weitere Funktionen folgen</p>
+              </div>
             </div>
           </div>
         </div>
